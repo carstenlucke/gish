@@ -9,7 +9,7 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 echo "+ + + Installation der Datenbank für mutillidae + + +"
 sudo /etc/init.d/mariadb start
 # set default MySql root password to "kali"
-sudo mysql -uroot -p -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'kali'; flush privileges;"
+sudo mysql -uroot -p"" -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'kali'; flush privileges;"
 echo "DB-root Kennwort eingeben (einfach ENTER, wenn nicht anders gesetzt!"
 sudo mysql -uroot -p"kali" -e "CREATE DATABASE mutillidae /*\!40100 DEFAULT CHARACTER SET utf8 */;"
 
