@@ -2,8 +2,8 @@
 cd ~
 
 sudo apt-get update
-sudo apt-get install php-curl php-mbstring php-xml
-sudo apt-get upgrade
+sudo apt-get install -y php-curl php-mbstring php-xml
+sudo apt-get upgrade -y
 # sudo apt-get --with-new-pkgs upgrade
 
 echo "+ + + Installation der Datenbank für mutillidae + + +"
