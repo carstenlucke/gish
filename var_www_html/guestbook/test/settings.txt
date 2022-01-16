@@ -1,0 +1,4 @@
+Zugangsdaten für die Fritz!Box von Omi
+--------------------------------------
+Username: admin
+Passwort: chris1234
