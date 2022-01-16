@@ -20,6 +20,8 @@ for key in allow_url_include allow_url_fopen
 do
  sed -i "s/^\($key\).*/\1 $(eval echo = \${$key})/" /etc/php/7.4/apache2/php.ini
 done
+echo "+ + + Checking PHP setting changes + + +"
+cat /etc/php/7.4/apache2/php.ini | grep allow_url_
 
 git clone https://github.com/carstenlucke/gish.git
 cd gish
