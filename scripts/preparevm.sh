@@ -13,6 +13,14 @@ sudo mysql -uroot -p -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'kali'; flu
 echo "DB-root Kennwort eingeben (einfach ENTER, wenn nicht anders gesetzt!"
 sudo mysql -uroot -p"kali" -e "CREATE DATABASE mutillidae /*\!40100 DEFAULT CHARACTER SET utf8 */;"
 
+# php settings must be insecure
+allow_url_include=On
+allow_url_fopen=On
+for key in allow_url_include allow_url_fopen
+do
+ sed -i "s/^\($key\).*/\1 $(eval echo = \${$key})/" /etc/php/7.4/apache2/php.ini
+done
+
 git clone https://github.com/carstenlucke/gish.git
 cd gish
 sudo mv /var/www/html /var/www/html-BACKUP
