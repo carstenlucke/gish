@@ -3,8 +3,9 @@
 1. Kali Linux herunterladen und im Hypervisor Deiner Wahl starten (e.g., VirtualBox, VMWare Fusion, etc.)
 2. Kali starten
 3. Einloggen mit kali/kali
-4. Terminal (normaler User) starten
-5. Im Terminal folgende Befehle ausführen:
+4. Falls noch nicht geändert, in den Einstellungen / Keyboard das Keyboard-Layout (Reiter *Layout*) auf GERMAN stellen und ENGLISH entfernen
+5. Terminal (normaler User) starten
+6. Im Terminal folgende Befehle ausführen:
 
 * `wget https://raw.githubusercontent.com/carstenlucke/gish/main/scripts/preparevm.sh`
 * `chmod 755 preparevm.sh`
