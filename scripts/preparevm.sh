@@ -2,7 +2,7 @@
 cd ~
 
 sudo apt-get update
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y php-curl php-mbstring php-xml
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y php-curl php-mbstring php-xml mariadb-plugin-provider-bzip2
 sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 # sudo apt-get --with-new-pkgs upgrade
 
