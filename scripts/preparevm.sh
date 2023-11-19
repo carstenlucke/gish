@@ -14,7 +14,7 @@ sudo mysql -uroot -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'kali'; flush 
 sudo mysql -uroot -p"kali" -e "CREATE DATABASE mutillidae /*\!40100 DEFAULT CHARACTER SET utf8 */;"
 
 # php settings must be insecure
-PHPINI="/etc/php/7.4/apache2/php.ini"
+PHPINI="/etc/php/8.2/apache2/php.ini"
 
 allow_url_include=On
 allow_url_fopen=On
