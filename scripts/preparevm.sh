@@ -1,6 +1,10 @@
 #!/bin/bash
 cd ~
 
+##########################
+# Script for Kali 2023.2 #
+##########################
+
 sudo apt-get update
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y php-curl php-mbstring php-xml mariadb-plugin-provider-bzip2
 sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
