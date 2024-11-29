@@ -37,3 +37,9 @@ cd gish
 sudo mv /var/www/html /var/www/html-BACKUP
 sudo mv var_www_html /var/www/html
 sudo /etc/init.d/apache2 start
+
+# Enable mysql and apache service
+sudo systemctl enable mysql
+sudo systemctl enable apache2
+
+sudo systemctl daemon-reload
