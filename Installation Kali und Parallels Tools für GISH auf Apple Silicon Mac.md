@@ -2,9 +2,9 @@
 
 - Herunterladen von Kali Image (Stand 21.11.2024 aktuell = Kali 2024.3)
 	- Downloadpage: https://www.kali.org/get-kali/#kali-installer-images
-	- Direktlink: https://cdimage.kali.org/kali-2024.3/kali-linux-2024.3-installer-arm64.iso
+	- Direktlink: https://cdimage.kali.org/kali-2025.3/kali-linux-2025.3-installer-arm64.iso
 - Installation von Kali über Erzeugen einer neuen VM und dann das Image für Kali für Apple Silicon Mac verwenden
-- Installation von Parallels Tools macht wahrscheinlich Probleme. 
+- Installation von Parallels Tools macht möglicherweise Probleme. 
 	- Man darf die CD-Rom nicht durch Anklicken auf dem Desktop mounten, sondern 
 ```
 	sudo mount -o exec /dev/sr0 /media/cdrom
