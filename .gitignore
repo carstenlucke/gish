@@ -1,0 +1,46 @@
+# macOS global ignores
+# Finder metadata
+.DS_Store
+.DS_Store?
+._*
+
+# AppleDouble files
+.AppleDouble
+
+# Icon file
+Icon?
+
+# Spotlight metadata
+.Spotlight-V100
+
+# Trash
+.Trashes
+
+# Time Machine
+.DocumentRevisions-V100/
+
+# File system events
+.fseventsd/
+
+# Temporary files
+.TemporaryItems/
+
+# Volume icon
+.VolumeIcon.icns
+
+# Apple database files
+.AppleDB/
+.AppleDesktop/
+.AppleDesktopDB
+
+# Network trash
+"Network Trash Folder"
+"Temporary Items"
+
+# Others sometimes created by macOS
+.LSOverride
+
+# Ignore for editors/IDEs often used on macOS (optional)
+# .vscode/
+# *.swp
+# *~

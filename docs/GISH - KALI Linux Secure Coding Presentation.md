@@ -42,7 +42,7 @@ DirBuster anwenden auf http://localhost/guestbook oder http://localhost/mutillid
 6. Dir to start with: /guestbook
 7. Click START and run scan
 
-![[Pasted image 20241205235721.png]]
+![DirBuster Scan](../assets/img/dirbuster-01.png)
 
 **Fun facts:**
 Zeigen des Access.log vom Apache während des Scans
@@ -68,6 +68,6 @@ In Username oder Passwort die Query mit `'` (Single quote) brechen
 	2. Developer-Konsole öffnen (Rechtsklick / Inspect)
 	3. Auf Tab STORAGE und dort die COOKIES für localhost anzeigen lassen
 
-![[Pasted image 20241206000645.png]]
+![Authentication Bypass-Attack using Cookies](../assets/img/auth-bypass-cookies.png)
 
 Interessant sind hier `uid` und `username`. Wenn man daran ändert, dann kann man sich mit `uid = 1` zum Admin machen
