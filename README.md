@@ -11,11 +11,15 @@
 5. Terminal (normaler User) starten
 6. Im Terminal folgende Befehle ausführen:
 
+**WICHTIG:** Das Script muss als **normaler User** (nicht als root) ausgeführt werden! Das Script wird bei Bedarf selbst `sudo` verwenden.
+
 ```bash
 wget https://raw.githubusercontent.com/carstenlucke/gish/main/scripts/preparevm.sh
 chmod 755 preparevm.sh
 ./preparevm.sh
 ```
+
+Das Script lädt automatisch alle Video-Materialien von `https://gish-vids.lucke.info/` in das Verzeichnis `~/gish-videos` herunter.
 
 7. Browser in Kali starten und `localhost` aufrufen
 8. Die Startseite sollte *Guestbook* und *mutillidae* als Links anzeigen

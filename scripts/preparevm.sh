@@ -1,5 +1,34 @@
 #!/bin/bash
+
+# WICHTIG: Dieses Script MUSS als normaler User ausgeführt werden (nicht als root)!
+# Das Script verwendet sudo für Befehle, die root-Rechte benötigen.
+
+if [ "$EUID" -eq 0 ]; then
+    echo "FEHLER: Dieses Script darf NICHT als root ausgeführt werden!"
+    echo "Bitte als normaler User ausführen: ./preparevm.sh"
+    exit 1
+fi
+
 cd ~
+
+echo "+ + + Herunterladen der GISH Video-Materialien + + +"
+VIDEO_URL="https://gish-vids.lucke.info"
+VIDEO_DIR="$HOME/gish-videos"
+
+# Erstelle Zielverzeichnis
+mkdir -p "$VIDEO_DIR"
+
+# Lade Videos mit wget herunter (Mirror-Modus für Verzeichnisstruktur)
+wget --no-verbose \
+     --recursive \
+     --no-parent \
+     --no-host-directories \
+     --cut-dirs=0 \
+     --reject "index.html*" \
+     --directory-prefix="$VIDEO_DIR" \
+     "$VIDEO_URL/"
+
+echo "Videos wurden nach $VIDEO_DIR heruntergeladen"
 
 sudo apt-get update
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y php-curl php-mbstring php-xml mariadb-plugin-provider-bzip2
