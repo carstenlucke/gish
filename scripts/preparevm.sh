@@ -1,14 +1,9 @@
 #!/bin/bash
 cd ~
 
-##########################
-# Script for Kali 2023.2 #
-##########################
-
 sudo apt-get update
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y php-curl php-mbstring php-xml mariadb-plugin-provider-bzip2
 sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
-# sudo apt-get --with-new-pkgs upgrade
 
 echo "+ + + Installation der Datenbank für mutillidae + + +"
 sudo /etc/init.d/mariadb start
@@ -18,7 +13,15 @@ sudo mysql -uroot -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'kali'; flush 
 sudo mysql -uroot -p"kali" -e "CREATE DATABASE mutillidae /*\!40100 DEFAULT CHARACTER SET utf8 */;"
 
 # php settings must be insecure
-PHPINI="/etc/php/8.2/apache2/php.ini"
+# Find php.ini used by Apache (use latest version if multiple exist)
+PHPINI=$(find /etc/php -type f -path "*/apache2/php.ini" 2>/dev/null | sort -V | tail -n1)
+
+if [ -z "$PHPINI" ]; then
+    echo "Error: Could not find Apache's php.ini file"
+    exit 1
+fi
+
+echo "Using PHP configuration file: $PHPINI"
 
 allow_url_include=On
 allow_url_fopen=On
