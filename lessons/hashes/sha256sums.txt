@@ -1,0 +1,4 @@
+7815658b11b327491c30b83ce66bc2f90d1d8ea6ab1fb9e3fb8f93aa0a773e16  Prüfung Hashwerte - shasum unter Mac OS.mp4
+7e5982ff01139e45cdcb6204c93b2610e820eb7253aacb1b080fad86a8b89aa9  Prüfung Hashwerte - shasum unter Mac OS.sha256sum
+688c98548e3547cf9a2f13c3765d0b0e39d038340cc112c38c24665431959450  VM in VirtualBox anlegen.mp4
+2a6bf7447b6fe7b67668476a5ba539941949c8f4cb07fef6f3ec0531df0dcf70  VM in VirtualBox anlegen.sha256sum

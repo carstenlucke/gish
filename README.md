@@ -21,7 +21,7 @@ chmod 755 preparevm.sh
 8. Die Startseite sollte *Guestbook* und *mutillidae* als Links anzeigen
 9. Den Link für *mutillidae* anklicken. Die Seite "bemängeln", dass die Datenbank nicht installiert ist. Hier dann einfach den ersten Link zum Setup der Datenbank anklicken. Es sollte nun alles installiert werden und dann die Startseite von Mutillidae erscheinen.
 
-<img src="./mutillidae.png" width="500" alt="Fehlermeldung, die darauf hinweist, dass der Datenbankserver unter localhost offline ist">
+<img src="assets/img/mutillidae.png" width="500" alt="Fehlermeldung, die darauf hinweist, dass der Datenbankserver unter localhost offline ist">
 
 
-Hinweis: Falls Du Parallels verwendest oder Probleme bei der Installation von Parallels Tools bzw. mit Kali auf Apple Silicon auftrittest, kann die Datei [Installation Kali und Parallels Tools für GISH auf Apple Silicon Mac.md](./Installation%20Kali%20und%20Parallels%20Tools%20für%20GISH%20auf%20Apple%20Silicon%20Mac.md) im Repository zusätzliche Hilfe bieten.
+Hinweis: Falls Du Parallels verwendest oder Probleme bei der Installation von Parallels Tools bzw. mit Kali auf Apple Silicon auftrittest, kann die Datei [Installation Kali und Parallels Tools für GISH auf Apple Silicon Mac.md](docs/Installation%20Kali%20und%20Parallels%20Tools%20für%20GISH%20auf%20Apple%20Silicon%20Mac.md) im Repository zusätzliche Hilfe bieten.
