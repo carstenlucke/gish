@@ -45,7 +45,11 @@ function getEntries(Guestbook $gb) {
                 echo <<<EOT
                 <div class="gbentry">
                     <div class="gbentry-message">$msg</div>
-                    <div class="gbentry-meta">$author &lt;$email&gt; · $date</div>
+                    <div class="gbentry-meta">
+                        <span class="gbentry-author">$author</span>
+                        <span class="gbentry-email">&lt;$email&gt;</span>
+                        <span class="gbentry-date">$date</span>
+                    </div>
                 </div>
 EOT;
             }
@@ -103,7 +107,7 @@ EOT;
             function xssAttackName() {
                 document.forms.gbform.elements.yourname.value = "<script>alert('XSS im Namen!');<\/script>";
                 document.forms.gbform.elements.email.value = "angreifer@example.com";
-                document.forms.gbform.elements.message.value = "XSS-Angriff über das Namen-Feld. Das Script-Tag wird direkt ausgeführt, da der Name NICHT escaped wird!";
+                document.forms.gbform.elements.message.value = "Erfolgreiche XSS-Angriff (Typ 2 / persistent) über das Namen-Feld. Das Script-Tag wird direkt ausgeführt, da der Name NICHT escaped wird!";
             }
             function xssAttackMessageStripOk() {
                 document.forms.gbform.elements.yourname.value = "Harmloser User";

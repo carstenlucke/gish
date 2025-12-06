@@ -88,9 +88,35 @@ body {
 .gbentry-meta {
     color: #666;
     font-size: 0.9em;
-    font-style: italic;
-    padding-top: 10px;
+    padding-top: 12px;
     border-top: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.gbentry-author {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 1em;
+}
+
+.gbentry-email {
+    color: #718096;
+    font-style: italic;
+    font-size: 0.95em;
+}
+
+.gbentry-date {
+    color: #a0aec0;
+    font-size: 0.9em;
+}
+
+.gbentry-date::before {
+    content: "·";
+    margin-right: 10px;
+    color: #cbd5e0;
 }
 
 /* Demo Links Section */
