@@ -101,24 +101,24 @@ EOT;
 
         <script>
             function xssAttackName() {
-                document.forms.gbform.elements.yourname.value = "<script>alert('xss attack1');<\/script>";
-                document.forms.gbform.elements.email.value = "c@mail.com";
-                document.forms.gbform.elements.message.value = "Lorem ipsum ...";
+                document.forms.gbform.elements.yourname.value = "<script>alert('XSS im Namen!');<\/script>";
+                document.forms.gbform.elements.email.value = "angreifer@example.com";
+                document.forms.gbform.elements.message.value = "XSS-Angriff über das Namen-Feld. Das Script-Tag wird direkt ausgeführt, da der Name NICHT escaped wird!";
             }
             function xssAttackMessageStripOk() {
-                document.forms.gbform.elements.yourname.value = "Carsten";
-                document.forms.gbform.elements.email.value = "c@mail.com";
-                document.forms.gbform.elements.message.value = "Lorem ipsum ... <script>alert('xss attack2');<\/script>";
+                document.forms.gbform.elements.yourname.value = "Harmloser User";
+                document.forms.gbform.elements.email.value = "user@example.com";
+                document.forms.gbform.elements.message.value = "Versuch: XSS über Nachricht mit <script>alert('XSS');<\/script> - Wird durch strip_tags() entfernt und ist daher SICHER.";
             }
             function xssAttackMessageStripFail() {
-                document.forms.gbform.elements.yourname.value = "Carsten";
-                document.forms.gbform.elements.email.value = "c@mail.com";
-                document.forms.gbform.elements.message.value = "<u onmouseover=\"javascript:alert('xss attack3');\">Lorem ipsum ... <\/u>";
+                document.forms.gbform.elements.yourname.value = "Cleverer Angreifer";
+                document.forms.gbform.elements.email.value = "hacker@example.com";
+                document.forms.gbform.elements.message.value = "<u onmouseover=\"javascript:alert('XSS via Event-Handler!');\">Fahre mit der Maus über diesen Text!<\/u> Das <u>-Tag ist erlaubt, aber strip_tags() entfernt NICHT die Event-Handler wie onmouseover!";
             }
             function xssAttackMessageStripHtmlSCIsSafe() {
-                document.forms.gbform.elements.yourname.value = "Carsten";
-                document.forms.gbform.elements.email.value = "c@mail.com  <script>alert('xss attack4');<\/script>";
-                document.forms.gbform.elements.message.value = "Lorem ipsum ...";
+                document.forms.gbform.elements.yourname.value = "Erfolgloser Angreifer";
+                document.forms.gbform.elements.email.value = "test@example.com <script>alert('XSS');<\/script>";
+                document.forms.gbform.elements.message.value = "Versuch: XSS über Email-Feld. htmlspecialchars() wandelt < und > in HTML-Entities um, daher ist dies SICHER.";
             }
         </script>
     </body>
