@@ -17,76 +17,109 @@ function getEntries(Guestbook $gb) {
 }
 
 ?>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-    "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="de">
     <head>
-        <title>Guestbook entries</title>
-        <link rel="stylesheet" href="/common/css/default.css" type="text/css" media="screen" charset="utf-8"></link>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Guestbook - XSS Demo</title>
+        <link rel="stylesheet" href="guestbook.css">
     </head>
-    
-    <script type="text/javascript" charset="utf-8">
-        function xssAttackName() {
-            document.forms.gbform.elements.yourname.value = "<script>alert('xss attack1');<\/script>";
-            document.forms.gbform.elements.email.value = "c@mail.com";
-            document.forms.gbform.elements.message.value = "Lorem ipsum ...";
-        }
-        function xssAttackMessageStripOk() {
-            document.forms.gbform.elements.yourname.value = "Carsten";
-            document.forms.gbform.elements.email.value = "c@mail.com";
-            document.forms.gbform.elements.message.value = "Lorem ipsum ... <script>alert('xss attack2');<\/script>";
-        }
-        function xssAttackMessageStripFail() {
-            document.forms.gbform.elements.yourname.value = "Carsten";
-            document.forms.gbform.elements.email.value = "c@mail.com";
-            document.forms.gbform.elements.message.value = "<u onmouseover=\"javascript:alert('xss attack3');\">Lorem ipsum ... <\/u>";
-        }
-        function xssAttackMessageStripHtmlSCIsSafe() {
-            document.forms.gbform.elements.yourname.value = "Carsten";
-            document.forms.gbform.elements.email.value = "c@mail.com  <script>alert('xss attack4');<\/script>";
-            document.forms.gbform.elements.message.value = "Lorem ipsum ...";
-        }
-    </script>
-    
     <body>
-        <h3>Guestbook (using this implementation: <?php echo get_class($gb); ?>)</h3>
+        <div class="container">
+            <div class="header">
+                <h1>📝 Guestbook</h1>
+                <p class="implementation-info">Implementation: <?php echo get_class($gb); ?></p>
+            </div>
 
-<?php
-foreach ($entries as $e) {
-    $msg = strip_tags($e->getMessage(), '<b><p><u><i>'); // <u onmouseover="javascrip:alert('xss attack');">Lorem ipsum ...</u>
-    $author = $e->getAuthor(); // <script>alert('xss attack');</script>
-    $email = htmlspecialchars($e->getEmail());
-    $date = htmlspecialchars($e->getEntryDate());
-    echo <<<EOT
-<div class="gbentry">
-    <p>$msg</p>
-    <p><em>$author &lt;$email&gt;, $date</em></p>
-</div>
+            <div class="main-layout">
+                <div class="left-column">
+                    <div class="entries-container">
+
+            <?php
+            foreach ($entries as $e) {
+                $msg = strip_tags($e->getMessage(), '<b><p><u><i>'); // <u onmouseover="javascrip:alert('xss attack');">Lorem ipsum ...</u>
+                $author = $e->getAuthor(); // <script>alert('xss attack');</script>
+                $email = htmlspecialchars($e->getEmail());
+                $date = htmlspecialchars($e->getEntryDate());
+                echo <<<EOT
+                <div class="gbentry">
+                    <div class="gbentry-message">$msg</div>
+                    <div class="gbentry-meta">$author &lt;$email&gt; · $date</div>
+                </div>
 EOT;
-}
-?>
-        <div>
-            <p>
-                <a href="clearsession.php">Angriffsdaten l&ouml;schen</a> | 
-                <a href="#" onclick="xssAttackName()">XSS Username</a> | 
-                <a href="#" onclick="xssAttackMessageStripOk()">XSS Message strip_tags ok</a> | 
-                <a href="#" onclick="xssAttackMessageStripFail()">XSS Message strip_tags fail</a> | 
-                <a href="#" onclick="xssAttackMessageStripHtmlSCIsSafe()">XSS htmlspecialchars is safe</a>
-            </p>
-            <p><strong>Add entry:</strong></p>
-            <form action="add.php" method="post" name="gbform" accept-charset="utf-8">
-                <p><label for="yourname">Name <em>(unsafe)</em>: </label>
-                <input type="text" size="50" name="yourname" value="" id="yourname" maxlength="255" /></p>
-                
-                <p><label for="yourname">Email <em>(htmlspecialchars)</em>: </label>
-                <input type="text" size="50" name="email" value="" id="email" maxlength="255" /></p>
-                
-                <p><label for="yourname">Message <em>(strip_tags($msg, '&lt;b&gt;&lt;p&gt;&lt;u&gt;&lt;i&gt;'))</em>: </label>
-                <textarea name="message" cols="50" rows="5" id="message"></textarea></p>
-                
-                <p><input type="submit" value="Submit &rarr;"> <input type="reset" value="Reset &rarr;"></p>
-                
-            </form>
+            }
+            ?>
+                    </div>
+                </div>
+
+                <div class="right-column">
+                    <div class="demo-section">
+                <h3>🔒 XSS Demo Links</h3>
+                <div class="demo-links">
+                    <a href="clearsession.php" class="demo-link reset">Angriffsdaten löschen</a>
+                    <a href="#" onclick="xssAttackName(); return false;" class="demo-link">XSS Username</a>
+                    <a href="#" onclick="xssAttackMessageStripOk(); return false;" class="demo-link">XSS Message (strip_tags OK)</a>
+                    <a href="#" onclick="xssAttackMessageStripFail(); return false;" class="demo-link">XSS Message (strip_tags FAIL)</a>
+                    <a href="#" onclick="xssAttackMessageStripHtmlSCIsSafe(); return false;" class="demo-link">XSS htmlspecialchars is safe</a>
+                </div>
+                    </div>
+
+                    <div class="form-section">
+                <h2>Neuer Eintrag</h2>
+                <form action="add.php" method="post" name="gbform" accept-charset="utf-8">
+                    <div class="form-group">
+                        <label for="yourname">
+                            Name <span class="security-note">(unsafe)</span>
+                        </label>
+                        <input type="text" name="yourname" id="yourname" maxlength="255" class="form-control" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">
+                            Email <span class="security-note">(htmlspecialchars)</span>
+                        </label>
+                        <input type="text" name="email" id="email" maxlength="255" class="form-control" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message">
+                            Nachricht <span class="security-note">(strip_tags($msg, '&lt;b&gt;&lt;p&gt;&lt;u&gt;&lt;i&gt;'))</span>
+                        </label>
+                        <textarea name="message" id="message" class="form-control"></textarea>
+                    </div>
+
+                    <div class="form-buttons">
+                        <button type="submit" class="btn btn-primary">Absenden</button>
+                        <button type="reset" class="btn btn-secondary">Zurücksetzen</button>
+                    </div>
+                </form>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <script>
+            function xssAttackName() {
+                document.forms.gbform.elements.yourname.value = "<script>alert('xss attack1');<\/script>";
+                document.forms.gbform.elements.email.value = "c@mail.com";
+                document.forms.gbform.elements.message.value = "Lorem ipsum ...";
+            }
+            function xssAttackMessageStripOk() {
+                document.forms.gbform.elements.yourname.value = "Carsten";
+                document.forms.gbform.elements.email.value = "c@mail.com";
+                document.forms.gbform.elements.message.value = "Lorem ipsum ... <script>alert('xss attack2');<\/script>";
+            }
+            function xssAttackMessageStripFail() {
+                document.forms.gbform.elements.yourname.value = "Carsten";
+                document.forms.gbform.elements.email.value = "c@mail.com";
+                document.forms.gbform.elements.message.value = "<u onmouseover=\"javascript:alert('xss attack3');\">Lorem ipsum ... <\/u>";
+            }
+            function xssAttackMessageStripHtmlSCIsSafe() {
+                document.forms.gbform.elements.yourname.value = "Carsten";
+                document.forms.gbform.elements.email.value = "c@mail.com  <script>alert('xss attack4');<\/script>";
+                document.forms.gbform.elements.message.value = "Lorem ipsum ...";
+            }
+        </script>
     </body>
 </html>
