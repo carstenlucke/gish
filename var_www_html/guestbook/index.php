@@ -289,23 +289,29 @@ foreach ($entries as $e) {
                 var element = document.getElementById(elementId);
                 var code = element.textContent;
 
-                // Simple syntax highlighting
+                // Escape HTML
                 code = code.replace(/&/g, '&amp;')
                           .replace(/</g, '&lt;')
                           .replace(/>/g, '&gt;');
 
-                // Highlight script tags
-                code = code.replace(/(&lt;script&gt;|&lt;\/script&gt;)/g, '<span class="code-tag">$1</span>');
-
-                // Highlight HTML tags
-                code = code.replace(/(&lt;[a-z\/][^&]*&gt;)/gi, '<span class="code-tag">$1</span>');
+                // Use markers first to avoid regex conflicts
+                // Highlight HTML tags (use unique markers)
+                code = code.replace(/(&lt;\/?\w+[^&]*?&gt;)/g, '###TAG_START###$1###TAG_END###');
 
                 // Highlight strings
-                code = code.replace(/'([^']*)'/g, '<span class="code-string">\'$1\'</span>');
-                code = code.replace(/"([^"]*)"/g, '<span class="code-string">"$1"</span>');
+                code = code.replace(/'([^']*)'/g, '###STR_START###\'$1\'###STR_END###');
+                code = code.replace(/"([^"]*)"/g, '###STR_START###"$1"###STR_END###');
 
-                // Highlight keywords
-                code = code.replace(/\b(function|var|if|alert|document|window|setTimeout|fetch|addEventListener)\b/g, '<span class="code-keyword">$1</span>');
+                // Highlight keywords (only outside of already marked areas)
+                code = code.replace(/\b(function|var|let|const|if|else|return|alert|document|window|setTimeout|setInterval|fetch|addEventListener|innerHTML)\b/g, '###KEY_START###$1###KEY_END###');
+
+                // Replace markers with actual HTML
+                code = code.replace(/###TAG_START###/g, '<span class="code-tag">')
+                          .replace(/###TAG_END###/g, '</span>')
+                          .replace(/###STR_START###/g, '<span class="code-string">')
+                          .replace(/###STR_END###/g, '</span>')
+                          .replace(/###KEY_START###/g, '<span class="code-keyword">')
+                          .replace(/###KEY_END###/g, '</span>');
 
                 element.innerHTML = code;
             }
