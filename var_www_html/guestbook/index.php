@@ -249,7 +249,7 @@ foreach ($entries as $e) {
                 document.forms.gbform.elements.message.value = "ADVANCED: Keylogger-Angriff. Ein Event-Listener zeichnet alle Tastatureingaben auf. Tippen Sie im eingefügten Textfeld - nach 20 Zeichen wird eine Demo-Alert mit den aufgezeichneten Daten angezeigt. In der Realität würden Passwörter, Kreditkartendaten etc. an einen Angreifer-Server gesendet.";
             }
             function xssAttackRedirect() {
-                document.forms.gbform.elements.yourname.value = "<script>if(confirm('Redirect Demo:\\n\\nNach dem Absenden wird die Seite zu Google weitergeleitet.\\n\\nIn einem echten Angriff würde dies zu einer Phishing-Seite führen!\\n\\nFortfahren?')) { setTimeout(function() { window.location.href = 'https://www.google.com'; }, 3000); }<\/script>";
+                document.forms.gbform.elements.yourname.value = "<script>if(confirm('Redirect Demo:\\n\\nNach dem Absenden wird die Seite zum GISH GitHub-Repository weitergeleitet.\\n\\nIn einem echten Angriff würde dies zu einer Phishing-Seite führen!\\n\\nFortfahren?')) { setTimeout(function() { window.location.href = 'https://github.com/carstenlucke/gish'; }, 3000); }<\/script>";
                 document.forms.gbform.elements.email.value = "phisher@redirect.evil";
                 document.forms.gbform.elements.message.value = "ADVANCED: Redirect/Phishing-Angriff. Nach 3 Sekunden wird der User auf eine andere Seite umgeleitet (window.location.href). Angreifer nutzen dies für Phishing: User landet auf gefälschter Login-Seite und gibt dort seine Credentials ein.";
             }

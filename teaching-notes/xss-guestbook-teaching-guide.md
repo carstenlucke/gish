@@ -353,7 +353,7 @@ document.addEventListener('keypress', function(e) {
 2. Absenden
 3. **Bestätigen Sie den Dialog**
 4. **Warten Sie 3 Sekunden**
-5. **Resultat**: Sie werden zu Google umgeleitet
+5. **Resultat**: Sie werden zum GISH GitHub-Repository umgeleitet
 
 **Erklärung:**
 ```javascript
