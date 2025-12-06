@@ -262,7 +262,7 @@ alert('XSS');  // <script>-Tag entfernt!
 **Vorgehensweise:**
 1. Klicken Sie auf **"Defacement (Seite überschreiben)"**
 2. Absenden
-3. **Warten Sie 2 Sekunden**
+3. **Warten Sie 5 Sekunden**
 4. **Resultat**: Komplette Seite wird schwarz mit "DEFACED!" Meldung
 
 **Erklärung:**
@@ -270,7 +270,7 @@ alert('XSS');  // <script>-Tag entfernt!
 <script>
 setTimeout(function() {
     document.body.innerHTML = '<div>DEFACED!</div>';
-}, 2000);
+}, 5000);  // 5 Sekunden Verzögerung
 </script>
 ```
 
