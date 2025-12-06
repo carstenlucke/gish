@@ -36,6 +36,7 @@ function getEntries(Guestbook $gb) {
                 <div class="left-column">
                     <div class="source-code-section">
                         <button onclick="toggleSourceCode(); return false;" class="btn-source-code">📄 Quellcode anzeigen</button>
+                        <a href="clearsession.php" class="btn-clear-session">🗑️ Angriffsdaten löschen</a>
                     </div>
                     <div class="entries-container">
 
@@ -96,7 +97,6 @@ EOT;
                 <h3>🔒 XSS Demo Links</h3>
                 <p class="demo-description">Klicken Sie auf einen der folgenden Links, um vorgefertigte Formulareinträge auszuwählen und verschiedene XSS-Angriffe zu testen:</p>
                 <div class="demo-links">
-                    <a href="clearsession.php" class="demo-link reset">Angriffsdaten löschen</a>
                     <a href="#" onclick="xssAttackName(); return false;" class="demo-link">
                         <div class="demo-link-content">
                             <div class="demo-link-title">XSS Username</div>

@@ -60,9 +60,13 @@ body {
 /* Source Code Section */
 .source-code-section {
     margin-bottom: 20px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
-.btn-source-code {
+.btn-source-code,
+.btn-clear-session {
     background: #4a5568;
     color: white;
     padding: 12px 24px;
@@ -73,12 +77,23 @@ body {
     cursor: pointer;
     transition: all 0.2s;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    text-decoration: none;
+    display: inline-block;
 }
 
-.btn-source-code:hover {
+.btn-source-code:hover,
+.btn-clear-session:hover {
     background: #2d3748;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-clear-session {
+    background: #dc3545;
+}
+
+.btn-clear-session:hover {
+    background: #c82333;
 }
 
 /* Guestbook Entries */
