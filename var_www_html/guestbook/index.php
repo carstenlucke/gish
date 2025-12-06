@@ -61,6 +61,37 @@ EOT;
                 </div>
 
                 <div class="right-column">
+                    <div class="form-section">
+                <h2>Neuer Eintrag</h2>
+                <form action="add.php" method="post" name="gbform" accept-charset="utf-8">
+                    <div class="form-group">
+                        <label for="yourname">
+                            Name <span class="security-note">(unsafe)</span>
+                        </label>
+                        <input type="text" name="yourname" id="yourname" maxlength="255" class="form-control" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">
+                            Email <span class="security-note">(htmlspecialchars)</span>
+                        </label>
+                        <input type="text" name="email" id="email" maxlength="255" class="form-control" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message">
+                            Nachricht <span class="security-note">(strip_tags($msg, '&lt;b&gt;&lt;p&gt;&lt;u&gt;&lt;i&gt;'))</span>
+                        </label>
+                        <textarea name="message" id="message" class="form-control"></textarea>
+                    </div>
+
+                    <div class="form-buttons">
+                        <button type="submit" class="btn btn-primary">Absenden</button>
+                        <button type="reset" class="btn btn-secondary">Zurücksetzen</button>
+                    </div>
+                </form>
+                    </div>
+
                     <div class="demo-section">
                 <h3>🔒 XSS Demo Links</h3>
                 <p class="demo-description">Klicken Sie auf einen der folgenden Links, um vorgefertigte Formulareinträge auszuwählen und verschiedene XSS-Angriffe zu testen:</p>
@@ -147,37 +178,6 @@ EOT;
                         </div>
                     </a>
                 </div>
-                    </div>
-
-                    <div class="form-section">
-                <h2>Neuer Eintrag</h2>
-                <form action="add.php" method="post" name="gbform" accept-charset="utf-8">
-                    <div class="form-group">
-                        <label for="yourname">
-                            Name <span class="security-note">(unsafe)</span>
-                        </label>
-                        <input type="text" name="yourname" id="yourname" maxlength="255" class="form-control" />
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email">
-                            Email <span class="security-note">(htmlspecialchars)</span>
-                        </label>
-                        <input type="text" name="email" id="email" maxlength="255" class="form-control" />
-                    </div>
-
-                    <div class="form-group">
-                        <label for="message">
-                            Nachricht <span class="security-note">(strip_tags($msg, '&lt;b&gt;&lt;p&gt;&lt;u&gt;&lt;i&gt;'))</span>
-                        </label>
-                        <textarea name="message" id="message" class="form-control"></textarea>
-                    </div>
-
-                    <div class="form-buttons">
-                        <button type="submit" class="btn btn-primary">Absenden</button>
-                        <button type="reset" class="btn btn-secondary">Zurücksetzen</button>
-                    </div>
-                </form>
                     </div>
                 </div>
             </div>
