@@ -204,10 +204,33 @@ body {
     display: flex;
     flex-direction: column;
     gap: 5px;
+    flex: 1;
 }
 
 .demo-link-title {
     font-weight: 500;
+}
+
+.demo-link-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-view-code {
+    background: #edf2f7;
+    border: 1px solid #cbd5e0;
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: all 0.2s;
+    line-height: 1;
+}
+
+.btn-view-code:hover {
+    background: #e2e8f0;
+    transform: scale(1.1);
 }
 
 .xss-type-badge {
@@ -552,4 +575,48 @@ textarea.form-control {
     .source-code {
         font-size: 0.8em;
     }
+}
+
+/* Payload Code Viewer Styles */
+.payload-section {
+    margin-bottom: 25px;
+}
+
+.payload-field-title {
+    color: #2d3748;
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.payload-code {
+    background: #1a202c;
+    color: #e2e8f0;
+    padding: 20px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9em;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.payload-code code {
+    display: block;
+}
+
+/* Syntax Highlighting for Payloads */
+.code-tag {
+    color: #fc8181;
+    font-weight: bold;
+}
+
+.code-string {
+    color: #68d391;
+}
+
+.code-keyword {
+    color: #90cdf4;
+    font-weight: bold;
 }

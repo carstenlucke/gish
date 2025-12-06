@@ -71,56 +71,80 @@ EOT;
                             <div class="demo-link-title">XSS Username</div>
                             <div class="xss-type-badge stored">Stored XSS</div>
                         </div>
-                        <span class="attack-status success">Erfolgreich</span>
+                        <div class="demo-link-actions">
+                            <button onclick="showPayloadCode('xssAttackName'); event.stopPropagation(); return false;" class="btn-view-code" title="Code anzeigen">👁️</button>
+                            <span class="attack-status success">Erfolgreich</span>
+                        </div>
                     </a>
                     <a href="#" onclick="xssAttackMessageStripOk(); return false;" class="demo-link">
                         <div class="demo-link-content">
                             <div class="demo-link-title">XSS Message (strip_tags OK)</div>
                             <div class="xss-type-badge stored">Stored XSS</div>
                         </div>
-                        <span class="attack-status blocked">Verhindert</span>
+                        <div class="demo-link-actions">
+                            <button onclick="showPayloadCode('xssAttackMessageStripOk'); event.stopPropagation(); return false;" class="btn-view-code" title="Code anzeigen">👁️</button>
+                            <span class="attack-status blocked">Verhindert</span>
+                        </div>
                     </a>
                     <a href="#" onclick="xssAttackMessageStripFail(); return false;" class="demo-link">
                         <div class="demo-link-content">
                             <div class="demo-link-title">XSS Message (strip_tags FAIL)</div>
                             <div class="xss-type-badge stored">Stored XSS</div>
                         </div>
-                        <span class="attack-status success">Erfolgreich</span>
+                        <div class="demo-link-actions">
+                            <button onclick="showPayloadCode('xssAttackMessageStripFail'); event.stopPropagation(); return false;" class="btn-view-code" title="Code anzeigen">👁️</button>
+                            <span class="attack-status success">Erfolgreich</span>
+                        </div>
                     </a>
                     <a href="#" onclick="xssAttackMessageStripHtmlSCIsSafe(); return false;" class="demo-link">
                         <div class="demo-link-content">
                             <div class="demo-link-title">XSS htmlspecialchars is safe</div>
                             <div class="xss-type-badge stored">Stored XSS</div>
                         </div>
-                        <span class="attack-status blocked">Verhindert</span>
+                        <div class="demo-link-actions">
+                            <button onclick="showPayloadCode('xssAttackMessageStripHtmlSCIsSafe'); event.stopPropagation(); return false;" class="btn-view-code" title="Code anzeigen">👁️</button>
+                            <span class="attack-status blocked">Verhindert</span>
+                        </div>
                     </a>
                     <a href="#" onclick="xssAttackCookieStealing(); return false;" class="demo-link">
                         <div class="demo-link-content">
                             <div class="demo-link-title">Cookie Stealing</div>
                             <div class="xss-type-badge stored">Stored XSS - Advanced</div>
                         </div>
-                        <span class="attack-status success">Erfolgreich</span>
+                        <div class="demo-link-actions">
+                            <button onclick="showPayloadCode('xssAttackCookieStealing'); event.stopPropagation(); return false;" class="btn-view-code" title="Code anzeigen">👁️</button>
+                            <span class="attack-status success">Erfolgreich</span>
+                        </div>
                     </a>
                     <a href="#" onclick="xssAttackDefacement(); return false;" class="demo-link">
                         <div class="demo-link-content">
                             <div class="demo-link-title">Defacement (Seite überschreiben)</div>
                             <div class="xss-type-badge stored">Stored XSS - Advanced</div>
                         </div>
-                        <span class="attack-status success">Erfolgreich</span>
+                        <div class="demo-link-actions">
+                            <button onclick="showPayloadCode('xssAttackDefacement'); event.stopPropagation(); return false;" class="btn-view-code" title="Code anzeigen">👁️</button>
+                            <span class="attack-status success">Erfolgreich</span>
+                        </div>
                     </a>
                     <a href="#" onclick="xssAttackKeylogger(); return false;" class="demo-link">
                         <div class="demo-link-content">
                             <div class="demo-link-title">Keylogger</div>
                             <div class="xss-type-badge stored">Stored XSS - Advanced</div>
                         </div>
-                        <span class="attack-status success">Erfolgreich</span>
+                        <div class="demo-link-actions">
+                            <button onclick="showPayloadCode('xssAttackKeylogger'); event.stopPropagation(); return false;" class="btn-view-code" title="Code anzeigen">👁️</button>
+                            <span class="attack-status success">Erfolgreich</span>
+                        </div>
                     </a>
                     <a href="#" onclick="xssAttackRedirect(); return false;" class="demo-link">
                         <div class="demo-link-content">
                             <div class="demo-link-title">Redirect (Phishing)</div>
                             <div class="xss-type-badge stored">Stored XSS - Advanced</div>
                         </div>
-                        <span class="attack-status success">Erfolgreich</span>
+                        <div class="demo-link-actions">
+                            <button onclick="showPayloadCode('xssAttackRedirect'); event.stopPropagation(); return false;" class="btn-view-code" title="Code anzeigen">👁️</button>
+                            <span class="attack-status success">Erfolgreich</span>
+                        </div>
                     </a>
                 </div>
                     </div>
@@ -154,6 +178,34 @@ EOT;
                         <button type="reset" class="btn btn-secondary">Zurücksetzen</button>
                     </div>
                 </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payload Code Viewer Modal -->
+        <div id="payloadCodeModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="payloadModalTitle">XSS Payload Code</h2>
+                    <span class="close" onclick="closePayloadModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p class="source-explanation">Der injizierte Code wird in die Formularfelder eingetragen:</p>
+
+                    <div class="payload-section">
+                        <h3 class="payload-field-title">Name-Feld:</h3>
+                        <pre class="payload-code"><code id="payloadName"></code></pre>
+                    </div>
+
+                    <div class="payload-section">
+                        <h3 class="payload-field-title">Email-Feld:</h3>
+                        <pre class="payload-code"><code id="payloadEmail"></code></pre>
+                    </div>
+
+                    <div class="payload-section">
+                        <h3 class="payload-field-title">Nachricht-Feld:</h3>
+                        <pre class="payload-code"><code id="payloadMessage"></code></pre>
                     </div>
                 </div>
             </div>
@@ -196,6 +248,72 @@ foreach ($entries as $e) {
         </div>
 
         <script>
+            // Payload Code Viewer Functions
+            function showPayloadCode(attackFunction) {
+                // Call the attack function to populate form fields
+                window[attackFunction]();
+
+                // Get the values from form fields
+                var nameValue = document.forms.gbform.elements.yourname.value;
+                var emailValue = document.forms.gbform.elements.email.value;
+                var messageValue = document.forms.gbform.elements.message.value;
+
+                // Set modal title
+                var titles = {
+                    'xssAttackName': 'XSS Username',
+                    'xssAttackMessageStripOk': 'XSS Message (strip_tags OK)',
+                    'xssAttackMessageStripFail': 'XSS Message (strip_tags FAIL)',
+                    'xssAttackMessageStripHtmlSCIsSafe': 'XSS htmlspecialchars is safe',
+                    'xssAttackCookieStealing': 'Cookie Stealing',
+                    'xssAttackDefacement': 'Defacement',
+                    'xssAttackKeylogger': 'Keylogger',
+                    'xssAttackRedirect': 'Redirect (Phishing)'
+                };
+                document.getElementById('payloadModalTitle').textContent = titles[attackFunction] + ' - Code Ansicht';
+
+                // Apply syntax highlighting
+                document.getElementById('payloadName').textContent = nameValue;
+                document.getElementById('payloadEmail').textContent = emailValue;
+                document.getElementById('payloadMessage').textContent = messageValue;
+
+                // Highlight script tags and HTML
+                highlightPayload('payloadName');
+                highlightPayload('payloadEmail');
+                highlightPayload('payloadMessage');
+
+                // Show modal
+                document.getElementById('payloadCodeModal').style.display = 'block';
+            }
+
+            function highlightPayload(elementId) {
+                var element = document.getElementById(elementId);
+                var code = element.textContent;
+
+                // Simple syntax highlighting
+                code = code.replace(/&/g, '&amp;')
+                          .replace(/</g, '&lt;')
+                          .replace(/>/g, '&gt;');
+
+                // Highlight script tags
+                code = code.replace(/(&lt;script&gt;|&lt;\/script&gt;)/g, '<span class="code-tag">$1</span>');
+
+                // Highlight HTML tags
+                code = code.replace(/(&lt;[a-z\/][^&]*&gt;)/gi, '<span class="code-tag">$1</span>');
+
+                // Highlight strings
+                code = code.replace(/'([^']*)'/g, '<span class="code-string">\'$1\'</span>');
+                code = code.replace(/"([^"]*)"/g, '<span class="code-string">"$1"</span>');
+
+                // Highlight keywords
+                code = code.replace(/\b(function|var|if|alert|document|window|setTimeout|fetch|addEventListener)\b/g, '<span class="code-keyword">$1</span>');
+
+                element.innerHTML = code;
+            }
+
+            function closePayloadModal() {
+                document.getElementById('payloadCodeModal').style.display = 'none';
+            }
+
             function toggleSourceCode() {
                 var modal = document.getElementById('sourceCodeModal');
                 if (modal.style.display === 'block') {
@@ -207,9 +325,14 @@ foreach ($entries as $e) {
 
             // Close modal when clicking outside
             window.onclick = function(event) {
-                var modal = document.getElementById('sourceCodeModal');
-                if (event.target == modal) {
-                    modal.style.display = 'none';
+                var sourceModal = document.getElementById('sourceCodeModal');
+                var payloadModal = document.getElementById('payloadCodeModal');
+
+                if (event.target == sourceModal) {
+                    sourceModal.style.display = 'none';
+                }
+                if (event.target == payloadModal) {
+                    payloadModal.style.display = 'none';
                 }
             }
 
