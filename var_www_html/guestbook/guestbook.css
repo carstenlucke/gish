@@ -131,9 +131,20 @@ body {
 
 .demo-section h3 {
     color: #2d3748;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     font-size: 1.2em;
     font-weight: 600;
+}
+
+.demo-description {
+    color: #4a5568;
+    font-size: 0.9em;
+    line-height: 1.5;
+    margin-bottom: 18px;
+    padding: 12px;
+    background: #f7fafc;
+    border-radius: 6px;
+    border-left: 3px solid #cbd5e0;
 }
 
 .demo-links {
@@ -153,13 +164,36 @@ body {
     transition: all 0.2s;
     cursor: pointer;
     border: 1px solid #e2e8f0;
-    display: block;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
 }
 
 .demo-link:hover {
     background: #edf2f7;
     border-color: #cbd5e0;
     transform: translateX(3px);
+}
+
+.attack-status {
+    font-size: 0.75em;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.attack-status.success {
+    background: #fed7d7;
+    color: #c53030;
+}
+
+.attack-status.blocked {
+    background: #c6f6d5;
+    color: #2f855a;
 }
 
 .demo-link.reset {

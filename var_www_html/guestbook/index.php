@@ -60,12 +60,25 @@ EOT;
                 <div class="right-column">
                     <div class="demo-section">
                 <h3>🔒 XSS Demo Links</h3>
+                <p class="demo-description">Klicken Sie auf einen der folgenden Links, um vorgefertigte Formulareinträge auszuwählen und verschiedene XSS-Angriffe zu testen:</p>
                 <div class="demo-links">
                     <a href="clearsession.php" class="demo-link reset">Angriffsdaten löschen</a>
-                    <a href="#" onclick="xssAttackName(); return false;" class="demo-link">XSS Username</a>
-                    <a href="#" onclick="xssAttackMessageStripOk(); return false;" class="demo-link">XSS Message (strip_tags OK)</a>
-                    <a href="#" onclick="xssAttackMessageStripFail(); return false;" class="demo-link">XSS Message (strip_tags FAIL)</a>
-                    <a href="#" onclick="xssAttackMessageStripHtmlSCIsSafe(); return false;" class="demo-link">XSS htmlspecialchars is safe</a>
+                    <a href="#" onclick="xssAttackName(); return false;" class="demo-link">
+                        XSS Username
+                        <span class="attack-status success">Erfolgreich</span>
+                    </a>
+                    <a href="#" onclick="xssAttackMessageStripOk(); return false;" class="demo-link">
+                        XSS Message (strip_tags OK)
+                        <span class="attack-status blocked">Verhindert</span>
+                    </a>
+                    <a href="#" onclick="xssAttackMessageStripFail(); return false;" class="demo-link">
+                        XSS Message (strip_tags FAIL)
+                        <span class="attack-status success">Erfolgreich</span>
+                    </a>
+                    <a href="#" onclick="xssAttackMessageStripHtmlSCIsSafe(); return false;" class="demo-link">
+                        XSS htmlspecialchars is safe
+                        <span class="attack-status blocked">Verhindert</span>
+                    </a>
                 </div>
                     </div>
 
