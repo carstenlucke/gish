@@ -5,11 +5,12 @@
 	 */
 
 	switch ($_SESSION["security-level"]){
+		default: // Default case: This code is insecure
    		case "0": // This code is insecure
    		case "1": // This code is insecure
-   			// DO NOTHING: This is insecure		
-			$lEncodeOutput = FALSE;
-			$lLimitOutput = FALSE;
+   			// DO NOTHING: This is insecure
+			$lEncodeOutput = false;
+			$lLimitOutput = false;
 		break;
 	    		
    		case "2":
@@ -30,10 +31,10 @@
   			 */
    			// encode the output following OWASP standards
    			// this will be HTML encoding because we are outputting data into HTML
-			$lEncodeOutput = TRUE;
-			$lLimitOutput = TRUE;
+			$lEncodeOutput = true;
+			$lLimitOutput = true;
    		break;
-   	}// end switch		
+   	}// end switch
 
    	if(isset($_GET["deleteLogs"])){
    		$lQueryResult = $SQLQueryHandler->truncateHitLog();
@@ -44,8 +45,8 @@
 
 <div class="page-title">Log</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <style>
 	#idLogRecords tr td{
@@ -60,9 +61,9 @@
 </style>
 <table class="results-table" id="idLogRecords">
 <tr class="report-header">
-	<td colspan="10">	
+	<td colspan="10">
 		<span>
-			<img width="32px" height="32px" src="./images/information-icon-64-64.png" />
+			<img width="32px" height="32px" src="./images/information-icon-64-64.png" alt="Information Icon" />
 			<?php echo $lQueryResult->num_rows; ?> log records found
 		</span>
 		<span title="Click to refresh log file" onclick="document.location.href=document.location.href.replace('&deleteLogs=deleteLogs','').replace('&popUpNotificationCode=LFD1','').concat('&popUpNotificationCode=LFR1');" style="cursor: pointer;margin-left:35px;margin-right:35px;white-space:nowrap;font-weight:bold;">
@@ -74,7 +75,7 @@
 			Delete Logs
 		</span>
 	</td>
-</tr>		
+</tr>
 <tr class="report-header">
     <td style="font-weight:bold;">Hostname</td>
     <td style="font-weight:bold;">IP</td>
@@ -84,7 +85,7 @@
 </tr>
 
 <?php
-	try{// to draw table		
+	try{// to draw table
 
 	    if ($lLimitOutput){
 	    	echo '<tr><td class="error-header" colspan="10">Note: DOS defenses enabled. Rows limited to last 20.</td></tr>';
@@ -106,7 +107,7 @@
 					$lClientIPAddress = $Encoder->encodeForHTML($row->ip);
 					$lBrowser = $Encoder->encodeForHTML($row->browser);
 					$lReferer = $Encoder->encodeForHTML($row->referer);
-					$lDate = $Encoder->encodeForHTML($row->date);				
+					$lDate = $Encoder->encodeForHTML($row->date);
 				}// end if
 				
 				echo "<tr>

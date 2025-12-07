@@ -1,34 +1,36 @@
-
 <?php
-	/* Known Vulnerabilities: 
-		Cross Site Scripting, 
+	/* Known Vulnerabilities:
+		Cross Site Scripting,
 		HTML injection,
 		HTTP Parameter Pollution
 		Method Tampering
 		Application Log Injection
 	*/
+
+	$lHTMLControls = 'required="required"';
 		
 	switch ($_SESSION["security-level"]){
+		default: // Default case: This code is insecure
    		case "0": // This code is insecure
-   			// DO NOTHING: This is insecure		
-			$lEncodeOutput = FALSE;
-			$lProtectAgainstMethodSwitching = FALSE;
-			$lHTTPParameterPollutionDetected = FALSE;
-			$lEnableHTMLControls = FALSE;
+   			// DO NOTHING: This is insecure
+			$lEncodeOutput = false;
+			$lProtectAgainstMethodSwitching = false;
+			$lHTTPParameterPollutionDetected = false;
+			$lEnableHTMLControls = false;
 		break;
 		case "1": // This code is insecure
-   			// DO NOTHING: This is insecure		
-			$lEncodeOutput = FALSE;
-			$lProtectAgainstMethodSwitching = FALSE;
-			$lHTTPParameterPollutionDetected = FALSE;
-			$lEnableHTMLControls = TRUE;
+   			// DO NOTHING: This is insecure
+			$lEncodeOutput = false;
+			$lProtectAgainstMethodSwitching = false;
+			$lHTTPParameterPollutionDetected = false;
+			$lEnableHTMLControls = true;
 		break;
 	    		
 		case "2":
 		case "3":
 		case "4":
 		case "5": // This code is fairly secure
-  			/* 
+  			/*
   			 * NOTE: Input validation is excellent but not enough. The output must be
   			 * encoded per context. For example, if output is placed in HTML,
   			 * then HTML encode it. Blacklisting is a losing proposition. You 
@@ -42,9 +44,9 @@
   			 */
    			// encode the output following OWASP standards
    			// this will be HTML encoding because we are outputting data into HTML
-			$lEncodeOutput = TRUE;
-			$lProtectAgainstMethodSwitching = TRUE;
-			$lEnableHTMLControls = TRUE;
+			$lEncodeOutput = true;
+			$lProtectAgainstMethodSwitching = true;
+			$lEnableHTMLControls = true;
 				
 			// Detect multiple params with same name (HTTP Parameter Pollution)
 			$lQueryString  = explode('&', $_SERVER['QUERY_STRING']);
@@ -75,34 +77,34 @@
 	   		$lDocumentToBeFramed = $_REQUEST["PathToDocument"];
 	   	}else{
 	   		$lDocumentToBeFramed = $_GET["PathToDocument"];
-	   	}//end if 
+	   	}//end if
    	}else{
-   		$lDocumentToBeFramed="documentation/how-to-access-Mutillidae-over-Virtual-Box-network.php";
+   		$lDocumentToBeFramed="documentation/robots.php";
    	}//end if
 
-	// Encode output to protect against cross site scripting 
+	// Encode output to protect against cross site scripting
 	if ($lEncodeOutput){
 		$lDocumentToBeFramed = $Encoder->encodeForHTML($lDocumentToBeFramed);
 	}// end if
 		   	
-	// if parameter pollution is not detected, print user choice 
+	// if parameter pollution is not detected, print user choice
    	if (!$lHTTPParameterPollutionDetected){
 		$lDocumentToBeFramedMessage = "Currently viewing document &quot;{$lDocumentToBeFramed}&quot;";
-   	}// end if isSet($_POST["document-viewer-php-submit-button"])
+   	}// end if
 	   	   	
-	$LogHandler->writeToLog("User chose to view document: " . $lDocumentToBeFramed);   	
+	$LogHandler->writeToLog("User chose to view document: " . $lDocumentToBeFramed);
 ?>
 
 <div class="page-title">Document Viewer</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <fieldset style="text-align: center;">
 	<legend>Document Viewer</legend>
-	<form 	action="index.php" 
+	<form 	action="index.php"
 			method="GET"
-			enctype="application/x-www-form-urlencoded" 
+			enctype="application/x-www-form-urlencoded"
 			id="idDocumentForm">
 		<input type="hidden" name="page" value="document-viewer.php" />
 		<table>
@@ -118,40 +120,16 @@
 			<tr><td></td></tr>
 			<tr>
 				<td style="text-align:left;">
-					<input 	name="PathToDocument" id="id_path_to_document" type="radio" 
-							value="documentation/change-log.txt"
-							checked="checked"
-							autofocus="autofocus"
-							<?php
-								if ($lEnableHTMLControls) {
-									echo('required="required"');
-								}// end if
-							?>					
-					/>&nbsp;&nbsp;Change Log<br />
 					<input	name="PathToDocument" id="id_path_to_document" type="radio" 
 							value="robots.txt"
-							<?php
-								if ($lEnableHTMLControls) {
-									echo('required="required"');
-								}// end if
-							?>
+							checked="checked"
+							autofocus="autofocus"
+							<?php if ($lEnableHTMLControls) {echo $lHTMLControls;} ?>
 					/>&nbsp;&nbsp;Robots.txt<br />
 					<input	name="PathToDocument" id="id_path_to_document" type="radio"
 							value="documentation/mutillidae-installation-on-xampp-win7.pdf" 
-							<?php
-								if ($lEnableHTMLControls) {
-									echo('required="required"');
-								}// end if
-							?>
-					/>&nbsp;&nbsp;Installation Instructions: Windows 7 (PDF)<br />
-					<input	name="PathToDocument" id="id_path_to_document" type="radio"
-							value="documentation/how-to-access-Mutillidae-over-Virtual-Box-network.php" 
-							<?php
-								if ($lEnableHTMLControls) {
-									echo('required="required"');
-								}// end if
-							?>
-					/>&nbsp;&nbsp;How to access Mutillidae over Virtual-Box-network<br />
+							<?php if ($lEnableHTMLControls) {echo $lHTMLControls;} ?>
+					/>&nbsp;&nbsp;Installation Instructions: Windows (PDF)<br />
 				</td>
 			</tr>
 			<tr><td></td></tr>
@@ -180,6 +158,6 @@
 
 <?php
 	if ($lHTTPParameterPollutionDetected) {
-		echo '<script>document.getElementById("id-bad-path-to-document-tr").style.display="";</script>'; 
+		echo '<script>document.getElementById("id-bad-path-to-document-tr").style.display="";</script>';
 	}// end if ($lHTTPParameterPollutionDetected)
 ?>

@@ -3,14 +3,14 @@
 <link rel="stylesheet" type="text/css" href="./styles/global-styles.css" />
 <div class="page-title">Capture Data</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <!-- BEGIN HTML OUTPUT  -->
 
 <div>
 	<a href="./index.php?page=captured-data.php" style="text-decoration: none;">
-	<img style="vertical-align: middle;" src="./images/cage-48-48.png" />
+	<img style="vertical-align: middle;" src="./images/cage-48-48.png" alt="Captured Data Icon" />
 	<span style="font-weight:bold; cursor: pointer;">View Captured Data</span>
 	</a>
 </div>

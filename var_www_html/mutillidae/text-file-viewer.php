@@ -1,4 +1,4 @@
-<?php 
+<?php
 	/* Known Vulnerabilities
 	 * SQL Injection, (Fix: Use Schematized Stored Procedures)
 	 * Cross Site Scripting, (Fix: Encode all output)
@@ -11,30 +11,31 @@
 	 * HTTP Parameter Pollution (Fix: Scope request variables)
 	 * Method Tampering
 	 */
-	try {	    	
+	try {
 		switch ($_SESSION["security-level"]){
+			default:
    			case "0": // This code is insecure
-				$lEnableHTMLControls = FALSE;
-   				$lUseTokenization = FALSE;
-				$lEncodeOutput = FALSE;
-				$lProtectAgainstMethodTampering = FALSE;
+				$lEnableHTMLControls = false;
+   				$lUseTokenization = false;
+				$lEncodeOutput = false;
+				$lProtectAgainstMethodTampering = false;
 			break;
 
    			case "1": // This code is insecure
-				$lEnableHTMLControls = TRUE;
-   				$lUseTokenization = FALSE;
-				$lEncodeOutput = FALSE;
-				$lProtectAgainstMethodTampering = FALSE;
+				$lEnableHTMLControls = true;
+   				$lUseTokenization = false;
+				$lEncodeOutput = false;
+				$lProtectAgainstMethodTampering = false;
 			break;
 
 			case "2":
 			case "3":
 			case "4":
 	   		case "5": // This code is fairly secure
-				$lEnableHTMLControls = TRUE;
-	   			$lUseTokenization = TRUE;
-				$lEncodeOutput = TRUE;
-				$lProtectAgainstMethodTampering = TRUE;
+				$lEnableHTMLControls = true;
+	   			$lUseTokenization = true;
+				$lEncodeOutput = true;
+				$lProtectAgainstMethodTampering = true;
 			break;
 	   	}// end switch ($_SESSION["security-level"])
 
@@ -51,8 +52,8 @@
 
 <div class="page-title">Hacker Files of Old</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <form 	action="index.php?page=text-file-viewer.php" 
 		method="post" 
@@ -100,7 +101,7 @@
 </form>
 
 <?php
-	try {	    	
+	try {
 		if (isset($_POST['text-file-viewer-php-submit-button'])){
 
 			/********************************************
@@ -114,7 +115,7 @@
 	   			 * attack. If a site uses POST, then grab input from _POST. Use _GET for gets. HPP can
 	   			 * occur more easily when input is ambiguous.
 	   			 */
-				$pTextFile = $_REQUEST['textfile'];		
+				$pTextFile = $_REQUEST['textfile'];
 			}//end if
 
 			/********************************************
@@ -142,9 +143,9 @@
 		   			 * thinks the input is (int, string, char, etc.). The fact is that HTTP is text. if the 
 		   			 * "textfile" is expected to be integer, it should be validated as such. If string, then 
 		   			 * validate as string.
-		   			 * 
+		   			 *
 		   			 *  Definition of validation. Perform all of:
-		   			 *  
+		   			 * 
 		   			 *  check data type
 		   			 *  check data length
 		   			 *  check character set
@@ -177,6 +178,7 @@
 						 * the direct object, which is the forwarding URL.
 						 */ 
 		   				switch($pTextFile){
+							default:
 		   					case 1: $lURL = "http://www.textfiles.com/hacking/auditool.txt";break;
 		   					case 2: $lURL = "http://www.textfiles.com/hacking/atms";break;
 		   					case 3: $lURL = "http://www.textfiles.com/hacking/backdoor.txt";break;
@@ -212,7 +214,7 @@
 			/********************************************
 			 * Open file and display contents
 			 *********************************************/
-			try{				
+			try{
 			    // open file handle
 				$handle = fopen($lURL, "r");
 	   			echo '<span class="label">File: '.$lTextFileDescription.'</span>';
@@ -229,7 +231,7 @@
 				
 			}catch(Exception $e){
 				echo $CustomErrorHandler->FormatError($e, "Error opening file stream. Cannot load file.");
-			}// end try		   	
+			}// end try
 		   				
 		}// end if (isset($_POST['text-file-viewer-php-submit-button']))
 	}catch(Exception $e){

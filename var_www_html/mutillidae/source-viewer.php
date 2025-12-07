@@ -13,27 +13,28 @@
 	 * SQL Exception, (Fix: Employ custom error handler)
 	 * HTTP Parameter Pollution (Fix: Scope request variables)
 	 */
-	try {	    	
+	try {
 		switch ($_SESSION["security-level"]){
+			default: // Default case: This code is insecure
 	   		case "0": // This code is insecure
-	   			$lEnableHTMLControls = FALSE;
-	   			$lValidateAndTokenize = FALSE;
-	   			$lEncodeOutput = FALSE;
+	   			$lEnableHTMLControls = false;
+	   			$lValidateAndTokenize = false;
+	   			$lEncodeOutput = false;
 	   		break;
 	   			 
-	   		case "1": // This code is insecure 
-				$lEnableHTMLControls = TRUE;
-	   			$lValidateAndTokenize = FALSE;
-				$lEncodeOutput = FALSE;
+	   		case "1": // This code is insecure
+				$lEnableHTMLControls = true;
+	   			$lValidateAndTokenize = false;
+				$lEncodeOutput = false;
 	   		break;
 	    		
 			case "2":
 			case "3":
 			case "4":
 	   		case "5": // This code is fairly secure
-				$lEnableHTMLControls = TRUE;
-	   			$lValidateAndTokenize = TRUE;
-				$lEncodeOutput = TRUE;
+				$lEnableHTMLControls = true;
+	   			$lValidateAndTokenize = true;
+				$lEncodeOutput = true;
 	   		break;
 	   	}// end switch ($_SESSION["security-level"])
 	   	
@@ -56,11 +57,11 @@
 
 <div class="page-title">Source Code Viewer</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
-<form 	action="index.php?page=source-viewer.php" 
-		method="post" 
+<form 	action="index.php?page=source-viewer.php"
+		method="post"
 		enctype="application/x-www-form-urlencoded">
 		
 	<table>
@@ -80,12 +81,12 @@
 				<input type="hidden" name="page" value="<?php echo $_REQUEST['page']?>">
 				<select name="phpfile" id="id_file_select" autofocus="autofocus" <?php echo $lHTMLControlAttributes ?>>
 				<?php 
-					$_SESSION['source-viewer-files-array'] = "";						
+					$_SESSION['source-viewer-files-array'] = "";
 					if(!$lValidateAndTokenize){
 						// Just print raw filenames as values
 						foreach ($DirectoryIterator as $fileInfo) {
 							$lPHPFileName = $fileInfo->getFilename();
-							if ($fileInfo->GetExtension() == "php" and !$fileInfo->isDot()) {
+							if ($fileInfo->GetExtension() == "php" && !$fileInfo->isDot()) {
 						   		echo '<option value="' . $lPHPFileName . '">' . $lPHPFileName . "</option>";
 							}// end if
 						}// end for each
@@ -95,10 +96,10 @@
 						$lCounter = 0;
 						foreach ($DirectoryIterator as $fileInfo) {
 							$lPHPFileName = $fileInfo->getFilename();
-							if ($fileInfo->GetExtension() == "php" and !$fileInfo->isDot()) {
+							if ($fileInfo->GetExtension() == "php" && !$fileInfo->isDot()) {
 						   		echo '<option value="' . $lCounter . '">' . $lPHPFileName . "</option>";
 								$aAllowedPHPFiles[$lCounter]=$lPHPFileName;
-								$lCounter += 1;							
+								$lCounter += 1;
 							}// end if
 						}// end for each
 						$_SESSION['source-viewer-files-array'] = $aAllowedPHPFiles;
@@ -118,7 +119,7 @@
 </form>
 
 <?php
-	try {	    	
+	try {
 		if (isset($_POST['source-file-viewer-php-submit-button'])){
 
 			if (!$lValidateAndTokenize) {
@@ -180,15 +181,15 @@
 	   				throw new Exception('Validation Failed: Did not receive allowed values array.');
 	   			}// end if
 
-	   			if (!($lArrayCount > 0)){
+				if ($lArrayCount <= 0){
 	   				throw new Exception('Validation Failed: Array is empty.');
 	   			}// end if
 	   			
 	   			/* We expect small int. validate positive integer between 0-9.
 	   			 * Regex pattern makes sure the user doesnt send in characters that
 	   			 * are not actually digits but can be cast to digits.
-	   			 */	
-	   			$isDigits = (preg_match("/\d{1,4}/", $pPHPFile) == 1);    			
+	   			 */
+	   			$isDigits = (preg_match("/\d{1,4}/", $pPHPFile) == 1);
 	   			if (!($isDigits && $pPHPFile >= 0 && $pPHPFile < $lArrayCount)){
 	   				throw(new Exception("Expected integer input. Cannot process request. Support team alerted."));
 	   			}// end if

@@ -18,27 +18,28 @@
 	/* ------------------------------------------
 	 * Constants used in application
 	 * ------------------------------------------ */
-    require_once(dirname(__FILE__).'/constants.php');
-	require_once(__ROOT__.'/includes/minimum-class-definitions.php');
+    require_once dirname(__FILE__).'/constants.php';
+	require_once __SITE_ROOT__.'/includes/minimum-class-definitions.php';
 
 	/* ------------------------------------------
  	* initialize Client Information Handler
  	* ------------------------------------------ */
-	require_once (__ROOT__.'/classes/ClientInformationHandler.php');
+	require_once __SITE_ROOT__.'/classes/ClientInformationHandler.php';
 	$lClientInformationHandler = new ClientInformationHandler();
 
 	try {
 	    switch ($lSecurityLevel){
+			default: // Default case: This code is insecure
 	   		case "0": // this code is insecure
 	   		case "1": // this code is insecure
-				$lProtectAgainstSQLInjection = FALSE;
+				$lProtectAgainstSQLInjection = false;
 	   		break;//case "0"
 
 	   		case "2":
 	   		case "3":
 	   		case "4":
 	   		case "5": // This code is fairly secure
-				$lProtectAgainstSQLInjection = TRUE;
+				$lProtectAgainstSQLInjection = true;
 	   		break;//case "5"
 	   	}// end switch ($_SESSION["security-level"])
 
@@ -134,7 +135,7 @@
 	}// end try
 
 	try {
-		$LogHandler->writeToLog("Captured user data");
+		$LogHandler->writeToLog("Captured User Data");
 		$LogHandler->writeToLog("Captured Client IP: ".$lClientIP);
 		$LogHandler->writeToLog("Captured Client Hostname: ".$lClientHostname);
 		$LogHandler->writeToLog("Captured Client User Agent: ".$lClientUserAgentString);
@@ -148,5 +149,5 @@
     /* ------------------------------------------
      * LOG USER VISIT TO PAGE
      * ------------------------------------------ */
-	include_once(__ROOT__."/includes/log-visit.php");
+	include_once __SITE_ROOT__."/includes/log-visit.php";
 ?>

@@ -1,24 +1,29 @@
 <?php
+
+/* Determine the root of the entire project.
+ * Recall this file is in the "includes" folder so its "2 levels deep". */
+if (!defined('__SITE_ROOT__')){if (!defined('__SITE_ROOT__')){define('__SITE_ROOT__', dirname(dirname(__FILE__)));}}
+
 class SQLQueryHandler {
-	protected $encodeOutput = FALSE;
-	protected $stopSQLInjection = FALSE;
-	protected $mLimitOutput = FALSE;
+	protected $encodeOutput = false;
+	protected $stopSQLInjection = false;
+	protected $mLimitOutput = false;
 	protected $mSecurityLevel = 0;
 
 	// private objects
 	protected $mMySQLHandler = null;
-	protected $mESAPI = null;
 	protected $mEncoder = null;
 
 	private function doSetSecurityLevel($pSecurityLevel){
 		$this->mSecurityLevel = $pSecurityLevel;
 
 		switch ($this->mSecurityLevel){
+			default: // Default case: This code is insecure, we are not encoding output
 	   		case "0": // This code is insecure, we are not encoding output
 			case "1": // This code is insecure, we are not encoding output
-				$this->encodeOutput = FALSE;
-				$this->stopSQLInjection = FALSE;
-				$this->mLimitOutput = FALSE;
+				$this->encodeOutput = false;
+				$this->stopSQLInjection = false;
+				$this->mLimitOutput = false;
 	   		break;
 
 			case "2":
@@ -26,25 +31,44 @@ class SQLQueryHandler {
 			case "4":
 	   		case "5": // This code is fairly secure
 	  			// If we are secure, then we encode all output.
-	   			$this->encodeOutput = TRUE;
-	   			$this->stopSQLInjection = TRUE;
-	   			$this->mLimitOutput = TRUE;
+	   			$this->encodeOutput = true;
+	   			$this->stopSQLInjection = true;
+	   			$this->mLimitOutput = true;
 	   		break;
 	   	}// end switch
 	}// end function
 
-	public function __construct($pPathToESAPI, $pSecurityLevel){
+	private function generateClientID($length = 16 /* 16 bytes = 128 bits */){
+		// Generates a secure 16-byte token for use as a Client ID
+		// The token is generated using a cryptographically secure pseudorandom number generator
+		// The token is then converted to hexadecimal format
+		// The token will be 32 characters long
+		return bin2hex(random_bytes($length));
+	}
+	
+	private function generateClientSecret($length = 32 /* 32 bytes = 256 bits */){
+		// Generates a secure 32-byte token for use in API calls
+		// The token is generated using a cryptographically secure pseudorandom number generator
+		// The token is then converted to hexadecimal format
+		// The token will be 64 characters long
+		return bin2hex(random_bytes($length));
+	}
+
+	public function __construct($pSecurityLevel = 0) {
+		// Ensure the provided level is valid; fall back to 0 if it's not.
+		if (!is_int($pSecurityLevel) || $pSecurityLevel < 0 || $pSecurityLevel > 5) {
+			$pSecurityLevel = 0;
+		}
 
 		$this->doSetSecurityLevel($pSecurityLevel);
 
-		//initialize OWASP ESAPI for PHP
-		require_once $pPathToESAPI . 'ESAPI.php';
-		$this->ESAPI = new ESAPI($pPathToESAPI . 'ESAPI.xml');
-		$this->Encoder = $this->ESAPI->getEncoder();
+		//initialize encoder
+		require_once __SITE_ROOT__.'/classes/EncodingHandler.php';
+		$this->mEncoder = new EncodingHandler();
 
 		/* Initialize MySQL Connection handler */
 		require_once 'MySQLHandler.php';
-		$this->mMySQLHandler = new MySQLHandler($pPathToESAPI, $pSecurityLevel);
+		$this->mMySQLHandler = new MySQLHandler($pSecurityLevel);
 		$this->mMySQLHandler->connectToDefaultDatabase();
 
 	}// end function
@@ -69,9 +93,38 @@ class SQLQueryHandler {
 	    return $this->mMySQLHandler->escapeDangerousCharacters($pData);
 	}
 
+	public function getSecurityLevelFromDB() {
+		// Query to retrieve the security level from the row with id = 1
+		$lQueryString = "SELECT level FROM security_level WHERE id = 1";
+	
+		// Execute the query
+		$lQueryResult = $this->mMySQLHandler->executeQuery($lQueryString);
+	
+		// Check if the query returned a valid result
+		if ($lQueryResult && $lQueryResult->num_rows > 0) {
+			$lRow = $lQueryResult->fetch_assoc();
+			return (int) $lRow['level'];  // Return the level as an integer
+		} else {
+			return null;  // Return null if the row does not exist
+		}
+	} // end function getSecurityLevelFromDB
+	
+	public function setSecurityLevelInDB($pLevel) {
+		if ($pLevel < 0 || $pLevel > 5) {
+			throw new InvalidArgumentException("Security level must be between 0 and 5.");
+		}
+	
+		$safeLevel = (int) $pLevel;
+		$lQueryString = "UPDATE security_level SET level = $safeLevel WHERE id = 1";
+		$this->mMySQLHandler->executeQuery($lQueryString);
+	
+		// Ensure the row was actually updated
+		return $this->mMySQLHandler->affected_rows() > 0;
+	} // end function setSecurityLevelInDB
+
 	public function getPageHelpTexts($pPageName){
 
-		if ($this->stopSQLInjection == TRUE){
+		if ($this->stopSQLInjection){
 			$pPageName = $this->mMySQLHandler->escapeDangerousCharacters($pPageName);
 		}// end if
 
@@ -93,7 +146,7 @@ class SQLQueryHandler {
 
 	public function getPageLevelOneHelpIncludeFiles($pPageName){
 
-		if ($this->stopSQLInjection == TRUE){
+		if ($this->stopSQLInjection){
 			$pPageName = $this->mMySQLHandler->escapeDangerousCharacters($pPageName);
 		}// end if
 
@@ -112,8 +165,8 @@ class SQLQueryHandler {
 
 	public function getLevelOneHelpIncludeFile($pIncludeFileKey){
 
-		if ($this->stopSQLInjection == TRUE){
-			$pPageName = $this->mMySQLHandler->escapeDangerousCharacters($pIncludeFileKey);
+		if ($this->stopSQLInjection){
+			$pIncludeFileKey = $this->mMySQLHandler->escapeDangerousCharacters($pIncludeFileKey);
 		}// end if
 
 		$lQueryString  = "
@@ -136,7 +189,7 @@ class SQLQueryHandler {
 			FROM captured_data
 			ORDER BY capture_date DESC";
 
-		if ($this->mLimitOutput == TRUE){
+		if ($this->mLimitOutput){
 	    	$lQueryString .= " LIMIT 20";
 	    }// end if
 
@@ -145,7 +198,7 @@ class SQLQueryHandler {
 
 	public function insertVoteIntoUserPoll(/*Text*/ $pToolName, /*Text*/ $pUserName){
 
-		if ($this->stopSQLInjection == TRUE){
+		if ($this->stopSQLInjection){
 			$pToolName = $this->mMySQLHandler->escapeDangerousCharacters($pToolName);
 			$pUserName = $this->mMySQLHandler->escapeDangerousCharacters($pUserName);
 		}// end if
@@ -171,7 +224,7 @@ class SQLQueryHandler {
 
 	public function insertBlogRecord($pBloggerName, $pBlogEntry){
 
-		if ($this->stopSQLInjection == TRUE){
+		if ($this->stopSQLInjection){
 			$pBloggerName = $this->mMySQLHandler->escapeDangerousCharacters($pBloggerName);
 			$pBlogEntry = $this->mMySQLHandler->escapeDangerousCharacters($pBlogEntry);
 		}// end if
@@ -187,7 +240,7 @@ class SQLQueryHandler {
 
 	public function getBlogRecord($pBloggerName){
 
-		if ($this->stopSQLInjection == TRUE){
+		if ($this->stopSQLInjection){
 			$pBloggerName = $this->mMySQLHandler->escapeDangerousCharacters($pBloggerName);
 		}// end if
 
@@ -205,7 +258,7 @@ class SQLQueryHandler {
   		 * Note: While escaping works ok in some case, it is not the best defense.
  		 * Using stored procedures is a much stronger defense.
  		 */
-		if ($this->stopSQLInjection == TRUE){
+		if ($this->stopSQLInjection){
 			$pPostedToolID = $this->mMySQLHandler->escapeDangerousCharacters($pPostedToolID);
 		}// end if
 
@@ -235,7 +288,7 @@ class SQLQueryHandler {
 		* is static.
 	*/
 		$lLimitString = "";
-		if ($this->mLimitOutput == TRUE){
+		if ($this->mLimitOutput){
 		$lLimitString .= " LIMIT 20";
 	}// end if
 
@@ -248,7 +301,7 @@ class SQLQueryHandler {
 	* Note: While escaping works ok in some case, it is not the best defense.
 		* Using stored procedures is a much stronger defense.
 	*/
-	if ($this->stopSQLInjection == TRUE){
+	if ($this->stopSQLInjection){
 		$pRecordIdentifier = $this->mMySQLHandler->escapeDangerousCharacters($pRecordIdentifier);
 	}// end if
 
@@ -266,7 +319,7 @@ class SQLQueryHandler {
 
 	public function accountExists($pUsername){
 
-		if ($this->stopSQLInjection == TRUE){
+		if ($this->stopSQLInjection){
 			$pUsername = $this->mMySQLHandler->escapeDangerousCharacters($pUsername);
 		}// end if
 
@@ -276,16 +329,16 @@ class SQLQueryHandler {
 		$lQueryResult = $this->mMySQLHandler->executeQuery($lQueryString);
 
 		if (isset($lQueryResult->num_rows)){
-			return ($lQueryResult->num_rows > 0);
+			return $lQueryResult->num_rows > 0;
 		}else{
-			return FALSE;
+			return false;
 		}// end if
 
 	}//end public function getUsernames
 
 	public function authenticateAccount($pUsername, $pPassword){
 
-		if ($this->stopSQLInjection == TRUE){
+		if ($this->stopSQLInjection){
 			$pUsername = $this->mMySQLHandler->escapeDangerousCharacters($pUsername);
 			$pPassword = $this->mMySQLHandler->escapeDangerousCharacters($pPassword);
 		}// end if
@@ -299,9 +352,9 @@ class SQLQueryHandler {
 		$lQueryResult = $this->mMySQLHandler->executeQuery($lQueryString);
 
 		if (isset($lQueryResult->num_rows)){
-			return ($lQueryResult->num_rows > 0);
+			return $lQueryResult->num_rows > 0;
 		}else{
-			return FALSE;
+			return false;
 		}// end if
 
 	}//end public function getUsernames
@@ -311,21 +364,21 @@ class SQLQueryHandler {
 		 * Note: While escaping works ok in some case, it is not the best defense.
 		* Using stored procedures is a much stronger defense.
 		*/
-		if ($this->stopSQLInjection == TRUE){
+		if ($this->stopSQLInjection){
 			$pUsername = $this->mMySQLHandler->escapeDangerousCharacters($pUsername);
 		}// end if
 
 		$lQueryString =
-		"SELECT username, mysignature
-			FROM accounts
-			WHERE username='".$pUsername."'";
+		"SELECT username, firstname, lastname, mysignature
+		 FROM accounts
+		 WHERE username='".$pUsername."'";
 
 		return $this->mMySQLHandler->executeQuery($lQueryString);
 	}//end public function getNonSensitiveAccountInformation
 
 	public function getUserAccountByID($pUserID){
 
-		if ($this->stopSQLInjection == TRUE){
+		if ($this->stopSQLInjection){
 			$pUserID = $this->mMySQLHandler->escapeDangerousCharacters($pUserID);
 		}// end if
 
@@ -340,7 +393,7 @@ class SQLQueryHandler {
  		 * Using stored procedures is a much stronger defense.
  		 */
 
-		if ($this->stopSQLInjection == TRUE){
+		if ($this->stopSQLInjection){
 			$pUsername = $this->mMySQLHandler->escapeDangerousCharacters($pUsername);
 			$pPassword = $this->mMySQLHandler->escapeDangerousCharacters($pPassword);
 		}// end if
@@ -353,33 +406,76 @@ class SQLQueryHandler {
 		return $this->mMySQLHandler->executeQuery($lQueryString);
 	}//end public function getUserAccount
 
+	public function getAccountByClientId($pClientId){
+		/*
+		 * Vulnerability: Using direct user input in SQL without escaping or parameterization,
+		 * making it vulnerable to SQL injection.
+		 */
+		if ($this->stopSQLInjection) {
+			$pClientId = $this->mMySQLHandler->escapeDangerousCharacters($pClientId);
+		}
+	
+		$lQueryString = "SELECT * FROM accounts WHERE client_id='" . $pClientId . "'";
+		return $this->mMySQLHandler->executeQuery($lQueryString);
+	}
+	
+	public function authenticateByClientCredentials($pClientId, $pClientSecret){
+		/*
+		 * Vulnerability: Directly using user-supplied client_id and client_secret without proper escaping,
+		 * making this function vulnerable to SQL injection.
+		 */
+		if ($this->stopSQLInjection) {
+			$pClientId = $this->mMySQLHandler->escapeDangerousCharacters($pClientId);
+			$pClientSecret = $this->mMySQLHandler->escapeDangerousCharacters($pClientSecret);
+		}
+	
+		$lQueryString =
+			"SELECT COUNT(*) AS count FROM accounts " .
+			"WHERE client_id='" . $pClientId . "' " .
+			"AND client_secret='" . $pClientSecret . "'";
+		
+		$result = $this->mMySQLHandler->executeQuery($lQueryString);
+		$row = $result->fetch_assoc();
+	
+		return $row['count'] > 0;
+	}
+	
 	/* -----------------------------------------
 	 * Insert Queries
 	 * ----------------------------------------- */
-	public function insertNewUserAccount($pUsername, $pPassword, $pSignature){
-   		/*
-  		 * Note: While escaping works ok in some case, it is not the best defense.
- 		 * Using stored procedures is a much stronger defense.
- 		 */
-		if ($this->stopSQLInjection == TRUE){
+	public function insertNewUserAccount($pUsername, $pPassword, $pFirstName, $pLastName, $pSignature){
+		/*
+		 * Note: While escaping works ok in some cases, it is not the best defense.
+		 * Using stored procedures is a much stronger defense.
+		 */
+		if ($this->stopSQLInjection){
 			$pUsername = $this->mMySQLHandler->escapeDangerousCharacters($pUsername);
 			$pPassword = $this->mMySQLHandler->escapeDangerousCharacters($pPassword);
+			$pFirstName = $this->mMySQLHandler->escapeDangerousCharacters($pFirstName);
+			$pLastName = $this->mMySQLHandler->escapeDangerousCharacters($pLastName);
 			$pSignature = $this->mMySQLHandler->escapeDangerousCharacters($pSignature);
 		}// end if
-
-		$lQueryString = "INSERT INTO accounts (username, password, mysignature) VALUES ('" .
+	
+		$lClientID = $this->generateClientID();
+		$lClientSecret = $this->generateClientSecret();
+			
+		$lQueryString = "INSERT INTO accounts (username, password, firstname, lastname, mysignature, client_id, client_secret) VALUES ('" .
 			$pUsername ."', '" .
 			$pPassword . "', '" .
-			$pSignature .
+			$pFirstName . "', '" .
+			$pLastName . "', '" .
+			$pSignature . "', '" .
+			$lClientID . "', '" .
+			$lClientSecret .
 			"')";
-
+	
 		if ($this->mMySQLHandler->executeQuery($lQueryString)){
 			return $this->mMySQLHandler->affected_rows();
 		}else{
 			return 0;
 		}
 	}//end function insertNewUserAccount
-
+	
 	public function insertCapturedData(
 		$pClientIP,
 		$pClientHostname,
@@ -388,7 +484,7 @@ class SQLQueryHandler {
 		$pClientReferrer,
 		$pCapturedData
 	){
-		if ($this->stopSQLInjection == TRUE){
+		if ($this->stopSQLInjection){
 			$pClientIP = $this->mMySQLHandler->escapeDangerousCharacters($pClientIP);
 			$pClientHostname = $this->mMySQLHandler->escapeDangerousCharacters($pClientHostname);
 			$pClientPort = $this->mMySQLHandler->escapeDangerousCharacters($pClientPort);
@@ -418,29 +514,55 @@ class SQLQueryHandler {
 	/* -----------------------------------------
 	 * Update Queries
 	* ----------------------------------------- */
-	public function updateUserAccount($pUsername, $pPassword, $pSignature){
+	public function updateUserAccount($pUsername, $pPassword, $pFirstName, $pLastName, $pSignature, $pUpdateClientID, $pUpdateClientSecret){
 		/*
-		 * Note: While escaping works ok in some case, it is not the best defense.
-		* Using stored procedures is a much stronger defense.
-		*/
-		if ($this->stopSQLInjection == TRUE){
+		 * Note: While escaping works ok in some cases, it is not the best defense.
+		 * Using stored procedures is a much stronger defense.
+		 */
+		if ($this->stopSQLInjection){
 			$pUsername = $this->mMySQLHandler->escapeDangerousCharacters($pUsername);
 			$pPassword = $this->mMySQLHandler->escapeDangerousCharacters($pPassword);
+			$pFirstName = $this->mMySQLHandler->escapeDangerousCharacters($pFirstName);
+			$pLastName = $this->mMySQLHandler->escapeDangerousCharacters($pLastName);
 			$pSignature = $this->mMySQLHandler->escapeDangerousCharacters($pSignature);
-		}// end if
-
-		$lQueryString =
+		}
+	
+		if ($pUpdateClientID){
+			$lClientID = $this->generateClientID();
+		} else {
+			$lClientID = "";
+		}
+	
+		if ($pUpdateClientSecret){
+			$lClientSecret = $this->generateClientSecret();
+		} else {
+			$lClientSecret = "";
+		}
+	
+		$lQueryString = 
 			"UPDATE accounts
 			SET
 				username = '".$pUsername."',
 				password = '".$pPassword."',
-				mysignature = '".$pSignature."'
-			WHERE
-				username = '".$pUsername."';";
-
+				firstname = '".$pFirstName."',
+				lastname = '".$pLastName."',
+				mysignature = '".$pSignature."'";
+	
+		if ($pUpdateClientID){
+			$lQueryString .= "," .
+				"client_id = '".$lClientID."'";
+		}
+	
+		if ($pUpdateClientSecret){
+			$lQueryString .= "," .
+				"client_secret = '".$lClientSecret."'";
+		}
+	
+		$lQueryString .= " WHERE username = '".$pUsername."';";
+	
 		if ($this->mMySQLHandler->executeQuery($lQueryString)){
 			return $this->mMySQLHandler->affected_rows();
-		}else{
+		} else {
 			return 0;
 		}
 	}//end function updateUserAccount
@@ -449,7 +571,7 @@ class SQLQueryHandler {
 	 * Delete Queries
 	* ----------------------------------------- */
 	public function deleteUser($pUsername){
-		if ($this->stopSQLInjection == TRUE){
+		if ($this->stopSQLInjection){
 			$pUsername = $this->mMySQLHandler->escapeDangerousCharacters($pUsername);
 		}// end if
 

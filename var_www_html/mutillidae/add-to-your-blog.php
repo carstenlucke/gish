@@ -1,7 +1,7 @@
 <?php
-	/* Known Vulnerabilities: 
-		SQL injection, 
-		Cross Site Scripting, 
+	/* Known Vulnerabilities:
+		SQL injection,
+		Cross Site Scripting,
 		Cross Site Request Forgery,
 		Application Exception Output,
 		HTML injection,
@@ -10,75 +10,72 @@
 	*/
 
 	/* Instantiate CSRF Protection object */
-	require_once (__ROOT__.'/classes/CSRFTokenHandler.php');
-	$lCSRFTokenHandler = new CSRFTokenHandler(__ROOT__.'/owasp-esapi-php/src/', $_SESSION["security-level"], "register-user");
-	
-	if (!isSet($logged_in_user)) {
-		throw new Exception("$logged_in_user is not set. Page add-to-your-blog.php requires this variable.");
-	}// end if
+	require_once __SITE_ROOT__.'/classes/CSRFTokenHandler.php';
+	$lCSRFTokenHandler = new CSRFTokenHandler($_SESSION["security-level"], "register-user");
 
 	switch ($_SESSION["security-level"]){
+		default: // Default case: This code is insecure
    		case "0": // This code is insecure
-   			// DO NOTHING: This is insecure		
-			$lEncodeOutput = FALSE;
-			$lLoggedInUser = $logged_in_user;
-			$lTokenizeAllowedMarkup = FALSE;
-			$lProtectAgainstSQLInjection = FALSE;
-			$lEnableJavaScriptValidation = FALSE;
-			$lEnableHTMLControls = FALSE;
-			$lProtectAgainstMethodTampering = FALSE;
-		break;	   		
+   			// DO NOTHING: This is insecure
+			$lEncodeOutput = false;
+			$lLoggedInUser = $_SESSION["logged_in_user"];
+			$lTokenizeAllowedMarkup = false;
+			$lProtectAgainstSQLInjection = false;
+			$lEnableJavaScriptValidation = false;
+			$lEnableHTMLControls = false;
+			$lProtectAgainstMethodTampering = false;
+		break;
 
    		case "1": // This code is insecure
-   			// DO NOTHING: This is insecure		
-			$lEncodeOutput = FALSE;
-			$lLoggedInUser = $logged_in_user;
-			$lTokenizeAllowedMarkup = FALSE;
-			$lProtectAgainstSQLInjection = FALSE;
-			$lEnableJavaScriptValidation = TRUE;
-			$lEnableHTMLControls = TRUE;
-			$lProtectAgainstMethodTampering = FALSE;
-		break;	   		
+   			// DO NOTHING: This is insecure
+			$lEncodeOutput = false;
+			$lLoggedInUser = $_SESSION["logged_in_user"];
+			$lTokenizeAllowedMarkup = false;
+			$lProtectAgainstSQLInjection = false;
+			$lEnableJavaScriptValidation = true;
+			$lEnableHTMLControls = true;
+			$lProtectAgainstMethodTampering = false;
+		break;
 
 		case "2":
 		case "3":
 		case "4":
 		case "5": // This code is fairly secure
-  			/* 
+  			/*
   			 * NOTE: Input validation is excellent but not enough. The output must be
   			 * encoded per context. For example, if output is placed in HTML,
-  			 * then HTML encode it. Blacklisting is a losing proposition. You 
+  			 * then HTML encode it. Blacklisting is a losing proposition. You
   			 * cannot blacklist everything. The business requirements will usually
-  			 * require allowing dangerous charaters. In the example here, we can 
+  			 * require allowing dangerous charaters. In the example here, we can
   			 * validate username but we have to allow special characters in passwords
-  			 * least we force weak passwords. We cannot validate the signature hardly 
+  			 * least we force weak passwords. We cannot validate the signature hardly
   			 * at all. The business requirements for text fields will demand most
   			 * characters. Output encoding is the answer. Validate what you can, encode it
   			 * all.
   			 */
    			// encode the output following OWASP standards
    			// this will be HTML encoding because we are outputting data into HTML
-			$lEncodeOutput = TRUE;
-			
+			$lEncodeOutput = true;
+
 			/* Business Problem: Sometimes the business requirements define that users
 			 * should be allowed to use some HTML  markup. If unneccesary, this is a
 			 * bad idea. Output encoding will naturally kill any users attempt to use HTML
-			 * in their input, which is exactly why we use output encoding. 
-			 * 
+			 * in their input, which is exactly why we use output encoding.
+			 *
 			 * If the business process allows some HTML, then those HTML items are elevated
 			 * from "mallicious input" to "direct object refernces" (a resource to be enjoyed).
-			 * When we want to restrict a user to using to "direct object refernces" (a 
+			 * When we want to restrict a user to using to "direct object refernces" (a
 			 * resource to be enjoyed) responsibly, we use mapping. Mapping allows the user
 			 * to chose from a "system generated" (that's us programmers) set of tokens
 			 * to pick from. We need to assure that the user either chooses one of the tokens
 			 * we offer, or our system rejects the request. To put it bluntly, either the user
 			 * follows the rules, or their output is encoded. Period.
 			 */
-			$lTokenizeAllowedMarkup = TRUE;
-			
+			$lTokenizeAllowedMarkup = true;
+
 			/* If we are in secure mode, we need to protect against SQLi */
-			$lProtectAgainstSQLInjection = TRUE;
-				
+			$lProtectAgainstSQLInjection = true;
+
 			/* Note that $MySQLHandler->escapeDangerousCharacters is ok but not the best defense. Stored
 			 * Procedures are a much more powerful defense, run much faster, can be
 			 * trapped in a schema, can run on the database, and can be called from
@@ -86,38 +83,38 @@
 			 * There are 3 ways that stored procs can be made vulenrable by developers,
 			 * but they are safe by default. Queries are vulnerable by default.
 			 */
-			$lLoggedInUser = $MySQLHandler->escapeDangerousCharacters($logged_in_user);
+			$lLoggedInUser = $MySQLHandler->escapeDangerousCharacters($_SESSION["logged_in_user"]);
 
-			/* 
+			/*
 			 * There is no security in JS validation. You must validate on the server.
 			 * JS is easy to bypass.
 			 */
-			$lEnableJavaScriptValidation = TRUE;
-			$lEnableHTMLControls = TRUE;
-			$lProtectAgainstMethodTampering = TRUE;
+			$lEnableJavaScriptValidation = true;
+			$lEnableHTMLControls = true;
+			$lProtectAgainstMethodTampering = true;
    		break;
    	}// end switch
-   	
+
 	$lNewCSRFTokenForNextRequest = $lCSRFTokenHandler->generateCSRFToken();
    	$lFormSubmitted = isSet($_POST["add-to-your-blog-php-submit-button"]);
 	/* ----------------------------------------
-	 * Insert user's new blog entry 
+	 * Insert user's new blog entry
 	 * ----------------------------------------
-	 * precondition: $logged_in_user is not null 
+	 * precondition: $_SESSION["logged_in_user"] is not null
 	 */
 	if($lFormSubmitted){
 		try {
-			
+
 			if ($lProtectAgainstMethodTampering) {
 				$lPostedCSRFToken = $_POST['csrf-token'];
 			}else{
 				$lPostedCSRFToken = $_REQUEST['csrf-token'];
 			}//end if
-					
+
 			if (!$lCSRFTokenHandler->validateCSRFToken($lPostedCSRFToken)){
 				throw (new Exception("Security Violation: Cross Site Request Forgery attempt detected.", 500));
 			}// end if
-						
+
 			// Grab inputs
 			if ($lProtectAgainstSQLInjection){
 				// This might prevent SQL injection on the insert.
@@ -133,25 +130,25 @@
 				$lBlogEntry = str_ireplace('<i>', ITALIC_STARTING_TAG, $lBlogEntry);
 				$lBlogEntry = str_ireplace('</i>', ITALIC_ENDING_TAG, $lBlogEntry);
 				$lBlogEntry = str_ireplace('<u>', UNDERLINE_STARTING_TAG, $lBlogEntry);
-				$lBlogEntry = str_ireplace('</u>', UNDERLINE_ENDING_TAG, $lBlogEntry);				
-			}// end if $lTokenizeAllowedMarkup			
-			
+				$lBlogEntry = str_ireplace('</u>', UNDERLINE_ENDING_TAG, $lBlogEntry);
+			}// end if $lTokenizeAllowedMarkup
+
 			// weak server-side input validation. not good enough.
 			if(strlen($lBlogEntry) > 0){
-				$lValidationFailed = FALSE;
-				
+				$lValidationFailed = false;
+
 				try {
-					$SQLQueryHandler->insertBlogRecord($lLoggedInUser, $lBlogEntry);	
+					$SQLQueryHandler->insertBlogRecord($lLoggedInUser, $lBlogEntry);
 				} catch (Exception $e) {
 					echo $CustomErrorHandler->FormatError($e, "Error inserting blog for " . $lLoggedInUser);
 				}//end try
-				
+
 				try {
-					$LogHandler->writeToLog("Blog entry added by: " . $lLoggedInUser);	
+					$LogHandler->writeToLog("Blog entry added by: " . $lLoggedInUser);
 				} catch (Exception $e) {
 					// do nothing
 				}//end try
-				
+
 			}else{
 				$lValidationFailed = TRUE;
 			}// end if(strlen($lBlogEntry) > 0)
@@ -159,7 +156,7 @@
 			echo $CustomErrorHandler->FormatError($e, "Error inserting blog");
 		}// end try
 	}else {
-		$lValidationFailed = FALSE;
+		$lValidationFailed = false;
 	}// end if isSet($_POST["add-to-your-blog-php-submit-button"])
 ?>
 
@@ -167,7 +164,7 @@
 <script type="text/javascript">
 	var onSubmitBlogEntry = function(/* HTMLForm */ theForm){
 
-		<?php 
+		<?php
 			if($lEnableJavaScriptValidation){
 				echo "var lInvalidBlogPattern = /\'/;";
 			}else{
@@ -184,21 +181,21 @@
 
 <div class="page-title">Welcome To The Blog</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc'); ?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc'; ?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <fieldset>
 	<legend>Add New Blog Entry</legend>
-	<form 	action="index.php?page=add-to-your-blog.php" 
-			method="post" 
-			enctype="application/x-www-form-urlencoded" 
+	<form 	action="index.php?page=add-to-your-blog.php"
+			method="post"
+			enctype="application/x-www-form-urlencoded"
 			onsubmit="return onSubmitBlogEntry(this);"
 			id="idBlogForm"
 			>
 		<input name="csrf-token" type="hidden" value="<?php echo $lNewCSRFTokenForNextRequest; ?>" />
 		<span>
 			<a href="./index.php?page=view-someones-blog.php" style="text-decoration: none;">
-			<img style="vertical-align: middle;" src="./images/magnifying-glass-icon.jpeg" height="32px" width="32px" />
+			<img style="vertical-align: middle;" src="./images/magnifying-glass-icon.jpeg" height="32px" width="32px" alt="Magnifying Glass Icon" />
 			<span style="font-weight:bold;">&nbsp;View Blogs</span>
 			</a>
 		</span>
@@ -224,9 +221,9 @@
 				<td>
 					<textarea 	name="blog_entry" rows="8" cols="65"
 								autofocus="autofocus"
-						<?php 
+						<?php
 							if ($lEnableHTMLControls) {
-								echo('minlength="1" maxlength="100" required="required"');
+								echo 'minlength="1" maxlength="100" required="required"';
 							}// end if
 						?>
 					></textarea>
@@ -245,13 +242,13 @@
 
 <?php
 	if ($lValidationFailed) {
-		echo '<script>document.getElementById("id-bad-blog-entry-tr").style.display="";</script>'; 
+		echo '<script>document.getElementById("id-bad-blog-entry-tr").style.display="";</script>';
 	}// end if ($lValidationFailed)
 ?>
 
 <?php
 	/* Display current user's blog entries */
-	try {		
+	try {
 
 		try {
 			/* Note that the logged in user could be used for SQL injection */
@@ -261,11 +258,11 @@
 		}//end try
 
 		try {
-			$LogHandler->writeToLog("Selected blog entries for " . $lLoggedInUser);	
+			$LogHandler->writeToLog("Selected blog entries for " . $lLoggedInUser);
 		} catch (Exception $e) {
 			echo $CustomErrorHandler->FormatError($e, "Error writing selected blog entries to log");
 		}// end try
-				
+
 		echo '<div>&nbsp;</div>
 				<span>
 					<a href="./index.php?page=view-someones-blog.php">
@@ -286,9 +283,9 @@
 
 	    $lRowNumber = 0;
 	    while($lRecord = $lQueryResult->fetch_object()){
-	    	
+
 	    	$lRowNumber++;
-	    	
+
 			if(!$lEncodeOutput){
 				$lBloggerName = $lRecord->blogger_name;
 				$lDate = $lRecord->date;
@@ -299,11 +296,11 @@
 				$lComment = $Encoder->encodeForHTML($lRecord->comment);
 			}// end if
 
-			/* Some dangerous markup allowed. Here we restore the tokenized output. 
-			 * Note that using GUIDs as tokens works well because they are 
-			 * fairly unique plus they encode to the same value. 
+			/* Some dangerous markup allowed. Here we restore the tokenized output.
+			 * Note that using GUIDs as tokens works well because they are
+			 * fairly unique plus they encode to the same value.
 			 * Encoding wont hurt them.
-			 * 
+			 *
 			 * Note: Mutillidae is weird. It has to be broken and unbroken at the same time.
 			 * Here we un-tokenize our output no matter if we are in secure mode or not.
 			 */
@@ -321,14 +318,14 @@
 					<td>{$lComment}</td>
 				</tr>\n";
 		}//end while $lRecord
-		echo "</table><div>&nbsp;</div>";		
+		echo "</table><div>&nbsp;</div>";
 
 	} catch (Exception $e) {
 		echo $CustomErrorHandler->FormatError($e, $lQuery);
-	}// end try	
+	}// end try
 ?>
 
-<?php 
+<?php
 	if ($lFormSubmitted) {
 		echo $lCSRFTokenHandler->generateCSRFHTMLReport();
 	}// end if

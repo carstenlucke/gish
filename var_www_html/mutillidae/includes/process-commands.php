@@ -7,21 +7,22 @@
         } catch (Exception $e) {
             /*do nothing*/
         };
-    };//end function logMessage
+    } //end function logMessage
 
    	switch ($_SESSION["security-level"]){
+		default: // Default case: This code is insecure
    		case "0": // This code is insecure
    		case "1": // This code is insecure
-   			$lProtectCookies = FALSE;
+			$lProtectCookies = false;
    		break;
 
 		case "2":
 		case "3":
 		case "4":
    		case "5": // This code is fairly secure
-   			$lProtectCookies = TRUE;
+			$lProtectCookies = true;
    		break;
-   	}// end switch
+   	} // end switch
 
     /* Precondition: $_REQUEST["do"] is not NULL */
     switch ($_REQUEST["do"]) {
@@ -36,19 +37,41 @@
        			$lhintsPopUpNotificationCode = "SSLO1";
     		}//end if
 		    header("Location: ".$_SERVER['SCRIPT_NAME'].'?popUpNotificationCode='.$lhintsPopUpNotificationCode.'&'.str_ireplace('do=toggle-enforce-ssl&', '', $_SERVER['QUERY_STRING']), true, 302);
-			exit();
+			exit(0);
     	break;//case "toggle-enforce-ssl"
 
     	case "logout":
-    	    logMessage("Logout user: {$_SESSION['logged_in_user']} ({$_SESSION['uid']})");
-		    $_SESSION["loggedin"] = "False";
-		    $_SESSION['logged_in_user'] = '';
-		    $_SESSION['logged_in_usersignature'] = '';
-			$_SESSION['uid'] = '';
-			$_SESSION['is_admin'] = 'FALSE';
-	    	setcookie("uid", "deleted", time()-3600);
-	    	setcookie("username", "deleted", time()-3600);
-	    	header("Location: index.php?page=login.php&popUpNotificationCode=LOU1", TRUE, 302);
+    	    logMessage("Logout user: {$_SESSION["logged_in_user"]} ({$_SESSION["uid"]})");
+
+			session_start();
+			session_unset();
+			session_destroy();
+
+			/* Delete cookies created in Security Level 0 or 1 - Insecure Mode */
+			$l_cookie_options = array (
+			    'expires' => time()-3600,    // 0 means session cookie
+			    'path' => '/',               // '/' means entire domain
+			    //'domain' => '.example.com', // default is current domain
+			    'secure' => FALSE,           // true or false
+			    'httponly' => FALSE,         // true or false
+			    'samesite' => 'Lax'          // None || Lax  || Strict
+			);
+			setrawcookie("username", "deleted", $l_cookie_options);
+			setrawcookie("uid", "deleted", $l_cookie_options);
+
+			/* Delete cookies created in Security Level 5 - Secure Mode */
+			$l_cookie_options = array (
+			    'expires' => time()-3600,    // 0 means session cookie
+			    'path' => '/',               // '/' means entire domain
+			    //'domain' => '.example.com', // default is current domain
+			    'secure' => FALSE,           // true or false
+			    'httponly' => TRUE,         // true or false
+			    'samesite' => 'Strict'          // None || Lax  || Strict
+			);
+			setcookie("uid", "deleted", $l_cookie_options);
+			setcookie("username", "deleted", $l_cookie_options);
+
+	    	header("Location: index.php?page=home.php&popUpNotificationCode=LOU1", TRUE, 302);
 	    	exit(0);
 	    break;//case "logout"
 
@@ -102,7 +125,7 @@
 			 * The "exit()" function makes sure we do not accidentally write any "body" lines.
 			 */
 		    header("Location: ".$_SERVER['SCRIPT_NAME'].'?popUpNotificationCode='.$lhintsPopUpNotificationCode.'&'.str_ireplace('do=toggle-hints&', '', $_SERVER['QUERY_STRING']), true, 302);
-			exit();
+			exit(0);
 		break;//case "toggle-hints"
 
 		case "toggle-security":
@@ -111,7 +134,7 @@
 
 			if ($lSecurityLevel == '0') {
 				$lSecurityLevel = '1';
-			}else if($lSecurityLevel == '1'){
+			}elseif($lSecurityLevel == '1'){
 				$lSecurityLevel = '5';
 			}else{
 				$lSecurityLevel = '0';
@@ -127,8 +150,8 @@
 		    	    'expires' => 0,              // 0 means session cookie
 		    	    'path' => '/',               // '/' means entire domain
 		    	    //'domain' => '.example.com', // default is current domain
-		    	    'secure' => FALSE,           // true or false
-		    	    'httponly' => FALSE,         // true or false
+		    	    'secure' => false,           // true or false
+		    	    'httponly' => false,         // true or false
 		    	    'samesite' => 'Lax'          // None || Lax  || Strict
 		    	);
 		    	setcookie('showhints', "1", $l_cookie_options);
@@ -145,8 +168,8 @@
 				    'expires' => 0,              // 0 means session cookie
 				    'path' => '/',               // '/' means entire domain
 				    //'domain' => '.example.com', // default is current domain
-				    'secure' => FALSE,           // true or false
-				    'httponly' => FALSE,         /* The showhints cookie is unprotected on purpose because
+				    'secure' => false,           // true or false
+				    'httponly' => false,         /* The showhints cookie is unprotected on purpose because
 				                                  * it is used in one of the lab assignments */
 				    'samesite' => 'Strict'          // None || Lax  || Strict
 				);
@@ -161,7 +184,11 @@
 		   	$RemoteFileHandler->setSecurityLevel($lSecurityLevel);
 		   	$RequiredSoftwareHandler->setSecurityLevel($lSecurityLevel);
 
+			/* Update the security level in the session */
 		    $_SESSION["security-level"] = $lSecurityLevel;
+
+			/* Update the security level in the database */
+			$SQLQueryHandler->setSecurityLevelInDB($lSecurityLevel);
 
 			switch ($lSecurityLevel){
 				case 0: $lhintsPopUpNotificationCode = "SL0";break;
@@ -170,9 +197,9 @@
 			}//end switch
 
 		    header("Location: ".$_SERVER['SCRIPT_NAME'].'?popUpNotificationCode='.$lhintsPopUpNotificationCode.'&'.str_ireplace('do=toggle-security&', '', $_SERVER['QUERY_STRING']), true, 302);
-		    exit();
+		    exit(0);
 		break;//case "toggle-hints"
 
 		default: break;
-    }// end switch
+    } // end switch
 ?>

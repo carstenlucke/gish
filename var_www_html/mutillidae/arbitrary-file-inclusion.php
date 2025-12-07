@@ -1,10 +1,11 @@
 <?php 
 	try{
 		switch ($_SESSION["security-level"]){
+			default: // Default case: This code is insecure
 	   		case "0": // This code is insecure
 	   		case "1": // This code is insecure
-	   			// DO NOTHING: This is insecure		
-				$lEncodeOutput = FALSE;
+	   			// DO NOTHING: This is insecure
+				$lEncodeOutput = false;
 			break;
 		    		
 			case "2":
@@ -30,9 +31,9 @@
 	  			 */
 	   			// encode the output following OWASP standards
 	   			// this will be HTML encoding because we are outputting data into HTML
-				$lEncodeOutput = TRUE;
+				$lEncodeOutput = true;
 	   		break;
-	   	}// end switch		
+	   	}// end switch
 	
 		if ($lEncodeOutput){
 			$lPage = $Encoder->encodeForHTML($_GET['page']);
@@ -47,10 +48,10 @@
 
 <div class="page-title">Arbitrary File Inclusion</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
-<table style="margin-left:auto; margin-right:auto;width:600px;">
+<table>
 	<tr>
 		<td class="form-header">Remote and Local File Inclusion</td>
 	</tr>

@@ -1,18 +1,19 @@
 <?php 
 	try{
 		switch ($_SESSION["security-level"]){
+			default: // Default case: This code is insecure
 	   		case "0": // This code is insecure
 	   		case "1": // This code is insecure
-	   			// DO NOTHING: This is insecure		
-				$lEncodeOutput = FALSE;
-				$luseSafeJavaScript = "false";
+	   			// DO NOTHING: This is insecure	
+				$lEncodeOutput = false;
+				$lUseSafeJavaScript = false;
 			break;
 
 			case "2":
 			case "3":
 			case "4":
 	   		case "5": // This code is fairly secure
-	  			/* 
+	  			/*
 	  			 * NOTE: Input validation is excellent but not enough. The output must be
 	  			 * encoded per context. For example, if output is placed	 in HTML,
 	  			 * then HTML encode it. Blacklisting is a losing proposition. You 
@@ -31,8 +32,8 @@
 	  			 */
 	   			// encode the output following OWASP standards
 	   			// this will be HTML encoding because we are outputting data into HTML
-				$lEncodeOutput = TRUE;
-				$luseSafeJavaScript = "true";
+				$lEncodeOutput = true;
+				$lUseSafeJavaScript = true;
 	   		break;
 	   	}// end switch
     } catch (Exception $e) {
@@ -42,8 +43,8 @@
 
 <div class="page-title">User-Agent Impersonation</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <fieldset>
 	<legend>Browser Fingerprint</legend>
@@ -67,7 +68,7 @@
 
 <script type="text/javascript">
 
-	var g_beSmart = <?php echo $luseSafeJavaScript; ?>;
+	var g_beSmart = <?php echo $lUseSafeJavaScript ? 'true' : 'false'; ?>;
 	var g_usingIE = ('all' in document);
 
 	var outputValue = function(p_elementId, p_elementValue, p_beSmart, p_usingIE){
@@ -118,13 +119,13 @@
 		lResultTD.className = "error-header";
 	}// end if
 		
-	/* 
+	/*
 		Log the browser fingerprint using the capture data page so 
 		we can copy and
 		paste the results to the user-agent switcher easier
 	*/
-	try{ 
-		var lXMLHTTP;	
+	try{
+		var lXMLHTTP;
 		var lURL = "/mutillidae/capture-data.php";
 		var lRequestMethod = "GET";
 		var lAsyncronousRequestFlag = true;
@@ -140,7 +141,7 @@
 		lXMLHTTP.onreadystatechange=function(){}; //end function
 		lXMLHTTP.open(lRequestMethod, lURL+"?"+encodeURI("Browser Fingerprint:" + lBrowserFingerprint), lAsyncronousRequestFlag);
 		lXMLHTTP.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-		lXMLHTTP.send(); 
+		lXMLHTTP.send();
 	}catch(e){
 		alert("Error trying execute AJAX call: " + e.message);
 	}//end try

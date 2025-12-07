@@ -1,26 +1,27 @@
 <?php
 	switch ($_SESSION["security-level"]){
+		default: // Default case: This code is insecure
    		case "0": // This code is insecure
    			// DO NOTHING: This is insecure
-   			$lEnableHTMLControls = FALSE;
-   			$lEncodeOutput = FALSE;
-   			$lTokenizeAllowedMarkup = FALSE;
-   			$lProtectAgainstMethodTampering = FALSE;
+   			$lEnableHTMLControls = false;
+   			$lEncodeOutput = false;
+   			$lTokenizeAllowedMarkup = false;
+   			$lProtectAgainstMethodTampering = false;
    		break;
    		
    		case "1": // This code is insecure
-   			// DO NOTHING: This is insecure		
-			$lEnableHTMLControls = TRUE;
-   			$lEncodeOutput = FALSE;
-			$lTokenizeAllowedMarkup = FALSE;
-			$lProtectAgainstMethodTampering = FALSE;
+   			// DO NOTHING: This is insecure
+			$lEnableHTMLControls = true;
+   			$lEncodeOutput = false;
+			$lTokenizeAllowedMarkup = false;
+			$lProtectAgainstMethodTampering = false;
 		break;
 	    		
 		case "2":
 		case "3":
 		case "4":
 		case "5": // This code is fairly secure
-			$lEnableHTMLControls = TRUE;
+			$lEnableHTMLControls = true;
 				
   			/* 
   			 * NOTE: Input validation is excellent but not enough. The output must be
@@ -36,7 +37,7 @@
   			 */
    			// encode the output following OWASP standards
    			// this will be HTML encoding because we are outputting data into HTML
-			$lEncodeOutput = TRUE;
+			$lEncodeOutput = true;
 			
 			/* Business Problem: Sometimes the business requirements define that users
 			 * should be allowed to use some HTML  markup. If unneccesary, this is a
@@ -52,10 +53,10 @@
 			 * we offer, or our system rejects the request. To put it bluntly, either the user
 			 * follows the rules, or their output is encoded. Period.
 			 */
-			$lTokenizeAllowedMarkup = TRUE;
+			$lTokenizeAllowedMarkup = true;
 			
 			/* If we are in secure mode, we need to protect against SQLi */
-			$lProtectAgainstMethodTampering = TRUE;
+			$lProtectAgainstMethodTampering = true;
    		break;
    	}// end switch
 
@@ -68,14 +69,14 @@
 
 <div class="page-title">View Blogs</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <fieldset>
 	<legend>View Blog Entries</legend>
 	<span>
 		<a href="./index.php?page=add-to-your-blog.php" style=" text-decoration: none;">
-		<img style="vertical-align: middle;" src="./images/add-icon-32-32.png" />
+		<img style="vertical-align: middle;" src="./images/add-icon-32-32.png" alt="Add Icon" />
 		<span style="font-weight:bold;">&nbsp;Add To Your Blog</span>
 		</a>
 	</span>
@@ -113,7 +114,7 @@
 								}// end while
 							} catch (Exception $e) {
 								echo $CustomErrorHandler->FormatError($e, $lQueryString);
-							}// end try		
+							}// end try
 						?>
 					</select>
 					<input name="view-someones-blog-php-submit-button" class="button" type="submit" value="View Blog Entries" />
@@ -125,12 +126,12 @@
 </fieldset>
 
 <?php
-	/* Known Vulnerabilities: 
+	/* Known Vulnerabilities:
 		SQL injection, Cross Site Scripting, Cross Site Request Forgery
 		Known Vulnerable Output: Name, Comment
 	*/
 
-	if(isSet($_POST["view-someones-blog-php-submit-button"])){
+	if(isset($_POST["view-someones-blog-php-submit-button"])){
 		try {
 
 			/* Note that $MySQLHandler->escapeDangerousCharacters is ok but not the best defense. Stored
@@ -210,12 +211,12 @@
 						<td>{$lComment}</td>
 					</tr>\n";
 				}//end while $row
-				echo "</table>";		
+				echo "</table>";
 			    		
 			}// end if ($lAuthor == "53241E83-76EC-4920-AD6D-503DD2A6BA68" || strlen($lAuthor) == 0)		
 
 		} catch (Exception $e) {
 			echo $CustomErrorHandler->FormatError($e, $lQueryString);
-		}// end try		
+		}// end try
 	}// end if isSet($_POST["view-someones-blog-php-submit-button"])
 ?>

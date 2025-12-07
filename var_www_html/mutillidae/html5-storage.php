@@ -1,24 +1,28 @@
-<?php 
-	try {	    	
+<?php
+	$lHTMLControlInput = 'minlength="1" maxlength="20" required="required"';
+	$lHTMLControlRadio = 'required="required"';
+
+	try {
     	switch ($_SESSION["security-level"]){
+			default: // Default case: This code is insecure.
     		case "0": // This code is insecure.
-    			$lUseClientSideStorageForSensitiveData = TRUE;
-    			$lUseJavaScriptValidation = FALSE;
-				$lEnableHTMLControls = FALSE;
+    			$lUseClientSideStorageForSensitiveData = true;
+    			$lUseJavaScriptValidation = false;
+				$lEnableHTMLControls = false;
     		break;
     		case "1": // This code is insecure.
-    			$lUseClientSideStorageForSensitiveData = TRUE;
-    			$lUseJavaScriptValidation = TRUE;
-				$lEnableHTMLControls = TRUE;
+    			$lUseClientSideStorageForSensitiveData = true;
+    			$lUseJavaScriptValidation = true;
+				$lEnableHTMLControls = true;
     		break;
 
 	   		case "2":
 	   		case "3":
 	   		case "4":
     		case "5": // This code is fairly secure
-    			$lUseClientSideStorageForSensitiveData = FALSE;
-    			$lUseJavaScriptValidation = TRUE;
-				$lEnableHTMLControls = TRUE;
+    			$lUseClientSideStorageForSensitiveData = false;
+    			$lUseJavaScriptValidation = true;
+				$lEnableHTMLControls = true;
     		break;
     	}// end switch
 	}catch(Exception $e){
@@ -32,12 +36,12 @@
 
 <div class="page-title">HTML 5 Storage</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <!-- BEGIN HTML OUTPUT  -->
 <script type="text/javascript">
-	/* 
+	/*
 		The Storage interface of the browser API
 	
 		interface Storage {
@@ -50,7 +54,7 @@
 		};
 	*/
 
-	<?php 
+	<?php
 		if ($lUseJavaScriptValidation){
 			echo "var gUseJavaScriptValidation = \"TRUE\";";
 		}else{
@@ -65,7 +69,7 @@
 			var lTR = lDocRoot.createElement("tr");
 			var lKeyTD = lDocRoot.createElement("td");
 			var lItemTD = lDocRoot.createElement("td");
-			var lTypeTD = lDocRoot.createElement("td");			
+			var lTypeTD = lDocRoot.createElement("td");
 			var lBlankTD = lDocRoot.createElement("td");
 
 			//lKeyTD.addAttribute("class", "label");
@@ -92,11 +96,11 @@
 	};// end function setMessage
 
 	var addItemToStorage = function(theForm){
-		try{			
+		try{
 			var lKey = theForm.DOMStorageKey.value;
 			var lItem = theForm.DOMStorageItem.value;
 			var lType = "";
-			var lUnacceptableKeyPattern = "[^A-Za-z0-9]";
+			var lUnacceptableKeyPattern = "[\W]";
 
 			if (gUseJavaScriptValidation == "TRUE" && lKey.match(lUnacceptableKeyPattern)){
 				setMessage("Unable to add key " + lKey.toString() + " because it contains non-alphanumeric characters");
@@ -127,6 +131,30 @@
 		}// end try
 	};// end JavaScript function
 
+	function clearStorage(storageType) {
+		switch (storageType) {
+			case 'session':
+				sessionStorage.clear();
+				break;
+			case 'local':
+				localStorage.clear();
+				break;
+			case 'all':
+				sessionStorage.clear();
+				localStorage.clear();
+				break;
+		}
+
+		// Clear the HTML table displaying storage items
+		const node = document.getElementById("idSessionStorageTableBody");
+		while (node.hasChildNodes()) {
+			node.removeChild(node.firstChild);
+		}
+
+		// Re-initialize to reflect the current state
+		init();
+	}
+
 	var init = function(){
 		var s = window.sessionStorage;
 		var l = window.localStorage;
@@ -148,12 +176,12 @@
 	
 </script>
 
-<form 	action="index.php?page=html5-storage.php" 
-		method="post" 
-		enctype="application/x-www-form-urlencoded" 
+<form 	action="index.php?page=html5-storage.php"
+		method="post"
+		enctype="application/x-www-form-urlencoded"
 		onsubmit="return false;"
-		id="idForm">		
-	<table style="margin-left:auto; margin-right:auto; width: 600px;">
+		id="idForm">
+	<table>
 		<tr id="id-invalid-input-tr" style="display: none;">
 			<td class="error-message">
 				Error: Invalid Input - Both Key and Item are required fields
@@ -165,6 +193,30 @@
 		<tr><td>&nbsp;<td></tr>
 	</table>
 	<table>
+	<tr>
+			<td colspan="3">
+				<div style="margin-left:auto; margin-right:auto;">
+					<span title="Click to delete session storage" 
+						onclick="clearStorage('session')" 
+						style="cursor: pointer;">
+						<img height="24px" width="24px" src="./images/delete-icon-48-48.png" style="vertical-align: middle;" />
+						<span style="font-weight: bold;">Session Storage</span>
+					</span>
+					<span title="Click to delete local storage" 
+						onclick="clearStorage('local')" 
+						style="cursor: pointer; margin-left: 20px;">
+						<img height="24px" width="24px" src="./images/delete-icon-48-48.png" style="vertical-align: middle;" />
+						<span style="font-weight: bold;">Local Storage</span>
+					</span>
+					<span title="Click to delete all HTML 5 storage" 
+						onclick="clearStorage('all')" 
+						style="cursor: pointer; margin-left: 20px;">
+						<img height="24px" width="24px" src="./images/delete-icon-48-48.png" style="vertical-align: middle;" />
+						<span style="font-weight: bold;">All Storage</span>
+					</span>
+				</div>
+			</td>
+		</tr>
 		<tr>
 			<td class="sub-header" colspan="3">Web Storage</td>
 			<td>&nbsp;</td>
@@ -173,70 +225,37 @@
 			<td class="sub-body">Key</td>
 			<td class="sub-body">Item</td>
 			<td class="sub-body">Storage Type</td>
-			<td>&nbsp;</td><td>&nbsp;</td>
 		</tr>
 		<tbody id="idSessionStorageTableBody" style="font-weight:bold;"></tbody>
-		<tr><td>&nbsp;</td></tr>
+		<tr><td colspan="3">&nbsp;</td></tr>
 		<tr>
-			<td><input	type="text" id="idDOMStorageKeyInput" name="DOMStorageKey" size="20"
+			<td class="label" colspan="3">
+				<input	type="text" id="idDOMStorageKeyInput" name="DOMStorageKey" size="20"
 						autofocus="autofocus"
-				<?php
-					if ($lEnableHTMLControls) {
-						echo('minlength="1" maxlength="20" required="required"');
-					}// end if
-				?>			
-			></td>
-			<td><input type="text" id="idDOMStorageItemInput" name="DOMStorageItem" size="20"
-				<?php
-					if ($lEnableHTMLControls) {
-						echo('minlength="1" maxlength="20" required="required"');
-					}// end if
-				?>
-			></td>
-			<td class="label">
+				<?php if ($lEnableHTMLControls) { echo $lHTMLControlInput; } ?>
+				/>
+				<input type="text" id="idDOMStorageItemInput" name="DOMStorageItem" size="20"
+				<?php if ($lEnableHTMLControls) { echo $lHTMLControlInput; } ?>
+				/>
 				<input type="radio" name="SessionStorageType" value="Session" checked="checked" 
-					<?php
-						if ($lEnableHTMLControls) {
-							echo('required="required"');
-						}// end if
-					?>
+				<?php if ($lEnableHTMLControls) { echo $lHTMLControlRadio; } ?>
 				/>Session
 				<input type="radio" name="SessionStorageType" value="Local"
-					<?php
-						if ($lEnableHTMLControls) {
-							echo('required="required"');
-						}// end if
-					?>
+				<?php if ($lEnableHTMLControls) { echo $lHTMLControlRadio; } ?>
 				/>Local
-			</td>
-			<td>
-			<input 	onclick="addItemToStorage(this.form);"
-					class="button" 
-					type="button" 
-					value="Add New" />
+				<input 	onclick="addItemToStorage(this.form);"
+						class="button"
+						type="button"
+						value="Add New" />
 			</td>
 		</tr>
-		<tr><td>&nbsp;</td></tr>
+		<tr><td colspan="3">&nbsp;</td></tr>
 		<tfoot id="idSessionStorageTableFooter">
-			<tr><th colspan="5"><span id="idAddItemMessageSpan"></span></th></tr>
-			<tr><td>&nbsp;</td></tr>
+			<tr><th colspan="3" scope="col"><span id="idAddItemMessageSpan"></span></th></tr>
+			<tr><td colspan="3">&nbsp;</td></tr>
 		</tfoot>
 	</table>
 </form>
-<div style="margin-left:auto; margin-right:auto; width:600px;">
-	<span title="Click to delete session storage" onclick='sessionStorage.clear(); var node=window.document.getElementById("idSessionStorageTableBody"); while(node.hasChildNodes()){node.removeChild(node.firstChild)}; init();' style="cursor: pointer;" >
-		<img height="24px" width="24px" src="./images/delete-icon-48-48.png" style="vertical-align: middle;" />
-		<span style="font-weight: bold;">Session Storage</span>
-	</span>
-	<span title="Click to delete locate storage" onclick='localStorage.clear(); var node=window.document.getElementById("idSessionStorageTableBody"); while(node.hasChildNodes()){node.removeChild(node.firstChild)}; init();' style="cursor: pointer;" >
-		<img height="24px" width="24px" src="./images/delete-icon-48-48.png" style="vertical-align: middle;margin-left: 20px;" />
-		<span style="font-weight: bold;">Local Storage</span>
-	</span>
-	<span title="Click to delete all html 5 storage" onclick='sessionStorage.clear();localStorage.clear(); var node=window.document.getElementById("idSessionStorageTableBody"); while(node.hasChildNodes()){node.removeChild(node.firstChild)}; init();' style="cursor: pointer;" >
-		<img height="24px" width="24px" src="./images/delete-icon-48-48.png" style="vertical-align: middle;margin-left: 20px;" />
-		<span style="font-weight: bold;">All Storage</span>
-	</span>
-</div>
 
 <script>
 	try{

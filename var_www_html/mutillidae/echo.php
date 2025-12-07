@@ -6,37 +6,38 @@
 
 	try {
     	switch ($_SESSION["security-level"]){
-    		case "0": // This code is insecure. No input validation is performed.
-				$lEnableJavaScriptValidation = FALSE;
-				$lEnableHTMLControls = FALSE;
-				$lProtectAgainstMethodTampering = FALSE;
-				$lProtectAgainstCommandInjection=FALSE;
-				$lProtectAgainstXSS = FALSE;
+			default: // Default case: This code is insecure
+    		case "0": // This code is insecure
+				$lEnableJavaScriptValidation = false;
+				$lEnableHTMLControls = false;
+				$lProtectAgainstMethodTampering = false;
+				$lProtectAgainstCommandInjection=false;
+				$lProtectAgainstXSS = false;
     		break;
 
-    		case "1": // This code is insecure. No input validation is performed.
-				$lEnableJavaScriptValidation = TRUE;
-				$lEnableHTMLControls = TRUE;
-				$lProtectAgainstMethodTampering = FALSE;
-				$lProtectAgainstCommandInjection=FALSE;
-				$lProtectAgainstXSS = FALSE;
+    		case "1": // This code is insecure
+				$lEnableJavaScriptValidation = true;
+				$lEnableHTMLControls = true;
+				$lProtectAgainstMethodTampering = false;
+				$lProtectAgainstCommandInjection=false;
+				$lProtectAgainstXSS = false;
     		break;
 
 	   		case "2":
 	   		case "3":
 	   		case "4":
     		case "5": // This code is fairly secure
-    			$lProtectAgainstCommandInjection=TRUE;
-				$lEnableHTMLControls = TRUE;
-    			$lEnableJavaScriptValidation = TRUE;
-   				$lProtectAgainstMethodTampering = TRUE;
-   				$lProtectAgainstXSS = TRUE;
+    			$lProtectAgainstCommandInjection=true;
+				$lEnableHTMLControls = true;
+    			$lEnableJavaScriptValidation = true;
+   				$lProtectAgainstMethodTampering = true;
+   				$lProtectAgainstXSS = true;
     		break;
     	}// end switch
 
-    	$lFormSubmitted = FALSE;
+    	$lFormSubmitted = false;
 		if (isset($_POST["message"]) || isset($_REQUEST["message"])) {
-			$lFormSubmitted = TRUE;
+			$lFormSubmitted = true;
 		}// end if
 
 		if ($lFormSubmitted){
@@ -53,14 +54,14 @@
 		}// end if $lFormSubmitted
 
 	}catch(Exception $e){
-        echo $CustomErrorHandler->FormatError($e, "Error setting up configuration on page html5-storage.php");
+        echo $CustomErrorHandler->FormatError($e, "Error setting up configuration on page echo.php");
     }// end try
 ?>
 
 <div class="page-title"><span style="font-size: 18pt;">Echo</span>, <span style="font-size: 16pt;">Echo</span>, <span style="font-size: 14pt;">Echo</span>...</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <!-- BEGIN HTML OUTPUT  -->
 <script type="text/javascript">
@@ -89,12 +90,12 @@
 </script>
 
 <a href="index.php?page=content-security-policy.php">
-    <img src="images/shield-icon-75-75.png" />
+	<img src="images/shield-icon-75-75.png" alt="Shield Icon" />
     <span class="label">Switch to Content Security Policy (CSP)</span>
 </a>
 <span class="buffer"></span>
 <a href="index.php?page=cors.php">
-    <img src="images/cors-icon-75-75.png" />
+	<img src="images/cors-icon-75-75.png" alt="CORS Icon" />
     <span class="label">Switch to Cross-Origin Resouce Sharing</span>
 </a>
 
@@ -117,7 +118,7 @@
 
 						<?php
 							if ($lEnableHTMLControls) {
-								echo('minlength="1" maxlength="20" required="required"');
+								echo 'minlength="1" maxlength="20" required="required"';
 							}// end if
 						?>
 				/>
@@ -149,7 +150,7 @@ if ($lFormSubmitted){
 	        }//end if
 
     	}catch(Exception $e){
-			echo $CustomErrorHandler->FormatError($e, "Input: " . $lMessage);
+			echo $CustomErrorHandler->FormatError($e, "Input: " . $lMessageText);
     	}// end try
 
 	}// end if (isset($_POST))

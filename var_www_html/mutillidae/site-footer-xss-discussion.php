@@ -1,10 +1,11 @@
 <?php 
 	try{
 		switch ($_SESSION["security-level"]){
+			default: // Default case: This code is insecure
 	   		case "0": // This code is insecure
 	   		case "1": // This code is insecure
-	   			// DO NOTHING: This is insecure		
-				$lEncodeOutput = FALSE;
+	   			// DO NOTHING: This is insecure
+				$lEncodeOutput = false;
 			break;
 		    		
 	   		case "2":
@@ -30,9 +31,9 @@
 	  			 */
 	   			// encode the output following OWASP standards
 	   			// this will be HTML encoding because we are outputting data into HTML
-				$lEncodeOutput = TRUE;
+				$lEncodeOutput = true;
 	   		break;
-	   	}// end switch		
+	   	}// end switch
 	
 		require_once 'classes/ClientInformationHandler.php';
 		$lClientInformationHandler = new ClientInformationHandler();
@@ -50,8 +51,8 @@
 
 <div class="page-title">Browser Version Site Footer</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <table>
 	<tr>
@@ -72,7 +73,7 @@
 	</tr>
 	<tr>
 		<td colspan="2" style="text-align:center;" class="label">
-			What could possibly go wrong? 
+			What could possibly go wrong?
 		</td>
 	</tr>
 	<tr><td>&nbsp;</td></tr>

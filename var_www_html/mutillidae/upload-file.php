@@ -1,21 +1,22 @@
-<?php include_once (__ROOT__.'/classes/FileUploadExceptionHandler.php');?>
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
-<?php	
+<?php include_once __SITE_ROOT__.'/classes/FileUploadExceptionHandler.php';?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
+<?php
 	try{
     	switch ($_SESSION["security-level"]){
+			default: // This code is insecure. No input validation is performed.
     		case "0": // This code is insecure. No input validation is performed.
-				$lEnableJavaScriptValidation = FALSE;
-    			$lEnableHTMLControls = FALSE;
-    			$lValidateFileUpload = FALSE;
+				$lEnableJavaScriptValidation = false;
+    			$lEnableHTMLControls = false;
+    			$lValidateFileUpload = false;
 				$lAllowedFileSize = 2000000;
 				$lUploadDirectoryFlag = "CLIENT_DECIDES";
 			break;
 
     		case "1": // This code is insecure. No input validation is performed.
-				$lEnableJavaScriptValidation = TRUE;
-    			$lEnableHTMLControls = TRUE;
-    			$lValidateFileUpload = FALSE;
+				$lEnableJavaScriptValidation = true;
+    			$lEnableHTMLControls = true;
+    			$lValidateFileUpload = false;
 				$lAllowedFileSize = 2000000;
 				$lUploadDirectoryFlag = "CLIENT_DECIDES";
 			break;
@@ -24,19 +25,18 @@
 	   		case "3":
 	   		case "4":
     		case "5": // This code is fairly secure
-				$lEnableJavaScriptValidation = TRUE;
-    			$lEnableHTMLControls = TRUE;
-    			$lValidateFileUpload = TRUE;
+				$lEnableJavaScriptValidation = true;
+    			$lEnableHTMLControls = true;
+    			$lValidateFileUpload = true;
 				$lAllowedFileSize = 20000;
 				$lUploadDirectoryFlag = "TEMP_DIRECTORY";
 			break;
     	}// end switch
     	
-		//$lWebServerUploadDirectory = __ROOT__.DIRECTORY_SEPARATOR.'uploads';
-    	$lWebServerUploadDirectory = sys_get_temp_dir();
-    	$lFormSubmitted = $lFileMovedSuccessfully = FALSE;
+		$lWebServerUploadDirectory = sys_get_temp_dir();
+    	$lFormSubmitted = $lFileMovedSuccessfully = false;
 		if (isset($_POST["upload-file-php-submit-button"]) || isset($_REQUEST["upload-file-php-submit-button"])) {
-			$lFormSubmitted = TRUE;
+			$lFormSubmitted = true;
 		}// end if
 
 		if ($lFormSubmitted){
@@ -82,32 +82,32 @@
 				throw new FileUploadExceptionHandler($lFileUploadErrorCode);
 			}//end if UPLOAD_ERR_OK
 			
-			$lFileValid = TRUE;
+			$lFileValid = true;
 			if ($lValidateFileUpload){
 				$lValidationMessage = "Validation performed.";
 				
 				if (!in_array($lFileExtension, $lAllowedFileExtensions)) {
 					$lValidationMessage .= " File extension {$lFileExtension} not allowed.";
-					$lFileValid = FALSE;
+					$lFileValid = false;
 				}// end if
 
 				if (!in_array($lFileType, $lAllowedFileTypes)) {
 					$lValidationMessage .= " File type {$lFileType} not allowed.";
-					$lFileValid = FALSE;
+					$lFileValid = false;
 				}// end if
 	
 				if ($lFileSize > $lAllowedFileSize){
 					$lValidationMessage .= "File size {$lFileSizeString} exceeds allowed file size {$lAllowedFileSizeString}.";
-					$lFileValid = FALSE;
+					$lFileValid = false;
 				}// end if
 			}// end if $lValidateFileUpload
 			
 			if ($lFileValid){
 				if (move_uploaded_file($lFileTempName, $lFilePermanentName)) {
-					$lFileMovedSuccessfully = TRUE;
+					$lFileMovedSuccessfully = true;
 					$lFileMovedMessage = "File moved to {$lFilePermanentName}";
 				}else{
-					$lFileMovedSuccessfully = FALSE;
+					$lFileMovedSuccessfully = false;
 					$lFileMovedMessage = "Error Detected. Unable to move PHP temp file {$lTempDirectory} to permanent location {$lFilePermanentName}";
 					throw new Exception($lFileMovedMessage);
 				}//end if move_uploaded_file
@@ -124,17 +124,17 @@
 
 		try{
 
-			<?php 
+			<?php
 			if($lEnableJavaScriptValidation){
-				echo "var lValidateInput = \"TRUE\"" . PHP_EOL;
+				echo "var lValidateInput = \"true\"" . PHP_EOL;
 			}else{
-				echo "var lValidateInput = \"FALSE\"" . PHP_EOL;
-			}// end if		
+				echo "var lValidateInput = \"false\"" . PHP_EOL;
+			}// end if
 			?>
 
 		    var lMAX_FILE_SIZE = <?php echo $lAllowedFileSize;?>;
 
-			if(lValidateInput == "TRUE"){
+			if(lValidateInput == "true"){
 				if (theForm.id_max_file_size.value > lMAX_FILE_SIZE){
 					alert('Maximum file size is not allowed to be larger than '+lMAX_FILE_SIZE);
 					return false;
@@ -165,7 +165,7 @@
 					<tr><td class='label'>Permanent File Name</td><td>{$lFilePermanentName}</td></tr>
 					<tr><td class='label'>File Type</td><td>{$lFileType}</td></tr>
 					<tr><td class='label'>File Size</td><td>{$lFileSizeString}</td></tr>
-				</table>	
+				</table>
 			</div>
 			<div>&nbsp;</div>";
 	}//end if
@@ -192,7 +192,9 @@
 				    <input type="hidden" name="MAX_FILE_SIZE" id="id_max_file_size" value="<?php echo $lAllowedFileSize; ?>" />
 					<label for="filename-text" class="label">Filename</label>
 					<input type="text" style="background-color:#ffffff;color:#000000;font-family:courier" disabled="disabled" name="filename-text" id="idFilenameText" size="50" />
-					<img src="./images/upload-32-32.png" align="middle" onclick="idFilename.click();" />
+					<button type="button" onclick="idFilename.click();" style="background: none; border: none; padding: 0; cursor: pointer;">
+						<img src="./images/upload-32-32.png" alt="Upload" />
+					</button>
 					<input type="file" id="idFilename" name="filename" style="display: none;" onchange="idFilenameText.value=this.value" />
 				</td>
 			</tr>

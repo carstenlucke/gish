@@ -1,16 +1,21 @@
-<?php
+	<?php
+
+/* Determine the root of the entire project.
+ * This file is in the "classes" folder so its "2 levels deep". */
+if (!defined('__SITE_ROOT__')){
+	define('__SITE_ROOT__', dirname(dirname(__FILE__)));
+}
+
 class CSRFTokenHandler{
 
 	/* objects */
-	protected $ESAPI = null;
-	protected $ESAPIEncoder = null;
-	protected $ESAPIRandomizer = null;
+	protected $mEncoder = null;
 
 	/* flag properties */
-	protected $mEncodeOutput = FALSE;
+	protected $mEncodeOutput = false;
 	protected $mSecurityLevel = 0;
 	protected $mCSRFTokenStrength = "NONE";
-	protected $mProtectAgainstCSRF = FALSE;
+	protected $mProtectAgainstCSRF = false;
 
 	protected $mExpectedCSRFTokenForThisRequest = "";
 	protected $mNewCSRFTokenForNextRequest = "";
@@ -49,18 +54,16 @@ class CSRFTokenHandler{
 
 	}// end function
 
-	public function __construct($pPathToESAPI, $pSecurityLevel, $pPageBeingProtected){
+	public function __construct($pSecurityLevel, $pPageBeingProtected){
 
 		$this->doSetSecurityLevel($pSecurityLevel);
 
-		//initialize OWASP ESAPI for PHP
-		require_once $pPathToESAPI . 'ESAPI.php';
-		$this->ESAPI = new ESAPI($pPathToESAPI . 'ESAPI.xml');
-		$this->ESAPIEncoder = $this->ESAPI->getEncoder();
-		$this->ESAPIRandomizer = $this->ESAPI->getRandomizer();
+		//initialize encoder
+		require_once (__SITE_ROOT__.'/classes/EncodingHandler.php');
+		$this->mEncoder = new EncodingHandler();
 		$this->mPageBeingProtected = $pPageBeingProtected;
 
-		if (isset($_SESSION['register-user']['csrf-token'])){
+		if (isset($_SESSION[$this->mPageBeingProtected]['csrf-token'])){
 			$this->mExpectedCSRFTokenForThisRequest = $_SESSION[$this->mPageBeingProtected]['csrf-token'];
 		}//end if
 
@@ -123,10 +126,10 @@ class CSRFTokenHandler{
 	public function generateCSRFHTMLReport(){
 
 		if($this->mEncodeOutput){
-			$lPostedCSRFToken = $this->ESAPIEncoder->encodeForHTML($this->mPostedCSRFToken);
-			$lExpectedCSRFTokenForThisRequest = $this->ESAPIEncoder->encodeForHTML($this->mExpectedCSRFTokenForThisRequest);
-			$lNewCSRFTokenForNextRequest = $this->ESAPIEncoder->encodeForHTML($this->mNewCSRFTokenForNextRequest);
-			$lTokenStoredInSession = $this->ESAPIEncoder->encodeForHTML($_SESSION[$this->mPageBeingProtected]['csrf-token']);
+			$lPostedCSRFToken = $this->mEncoder->encodeForHTML($this->mPostedCSRFToken);
+			$lExpectedCSRFTokenForThisRequest = $this->mEncoder->encodeForHTML($this->mExpectedCSRFTokenForThisRequest);
+			$lNewCSRFTokenForNextRequest = $this->mEncoder->encodeForHTML($this->mNewCSRFTokenForNextRequest);
+			$lTokenStoredInSession = $this->mEncoder->encodeForHTML($_SESSION[$this->mPageBeingProtected]['csrf-token']);
 		}else{
 			$lPostedCSRFToken = $this->mPostedCSRFToken;
 			$lExpectedCSRFTokenForThisRequest = $this->mExpectedCSRFTokenForThisRequest;

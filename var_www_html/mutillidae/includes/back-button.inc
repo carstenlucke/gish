@@ -5,11 +5,15 @@
         $lSecurityLevel = 0;
     }
 
+    if(!isset($CSPNonce)){
+        $CSPNonce = "";
+    }
+
     switch ($lSecurityLevel){
    		case "0": // This code is insecure
    		case "1":
    			// DO NOTHING: This is insecure
-			$lEncodeOutput = FALSE;
+			$lEncodeOutput = false;
 		break;
 
 		case "2":
@@ -24,7 +28,7 @@
   			 * require allowing dangerous charaters.Output encoding is the answer.
   			 * Validate what you can, encode it all.
   			 */
-			$lEncodeOutput = TRUE;
+			$lEncodeOutput = true;
    		break;
    	}// end switch
 
