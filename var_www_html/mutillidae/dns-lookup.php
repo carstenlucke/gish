@@ -6,37 +6,38 @@
 
 	try {
     	switch ($_SESSION["security-level"]){
+			default: // Default case: This code is insecure
     		case "0": // This code is insecure. No input validation is performed.
-				$lEnableJavaScriptValidation = FALSE;
-				$lEnableHTMLControls = FALSE;
-				$lProtectAgainstMethodTampering = FALSE;
-				$lProtectAgainstCommandInjection=FALSE;
-				$lProtectAgainstXSS = FALSE;
+				$lEnableJavaScriptValidation = false;
+				$lEnableHTMLControls = false;
+				$lProtectAgainstMethodTampering = false;
+				$lProtectAgainstCommandInjection=false;
+				$lProtectAgainstXSS = false;
     		break;
 
     		case "1": // This code is insecure. No input validation is performed.
-				$lEnableJavaScriptValidation = TRUE;
-				$lEnableHTMLControls = TRUE;
-				$lProtectAgainstMethodTampering = FALSE;
-				$lProtectAgainstCommandInjection=FALSE;
-				$lProtectAgainstXSS = FALSE;
+				$lEnableJavaScriptValidation = true;
+				$lEnableHTMLControls = true;
+				$lProtectAgainstMethodTampering = false;
+				$lProtectAgainstCommandInjection=false;
+				$lProtectAgainstXSS = false;
     		break;
 
 	   		case "2":
 	   		case "3":
 	   		case "4":
     		case "5": // This code is fairly secure
-    			$lProtectAgainstCommandInjection=TRUE;
-				$lEnableHTMLControls = TRUE;
-    			$lEnableJavaScriptValidation = TRUE;
-   				$lProtectAgainstMethodTampering = TRUE;
-   				$lProtectAgainstXSS = TRUE;
+    			$lProtectAgainstCommandInjection=true;
+				$lEnableHTMLControls = true;
+    			$lEnableJavaScriptValidation = true;
+   				$lProtectAgainstMethodTampering = true;
+   				$lProtectAgainstXSS = true;
     		break;
     	}// end switch
 
-    	$lFormSubmitted = FALSE;
+    	$lFormSubmitted = false;
 		if (isset($_POST["target_host"]) || isset($_REQUEST["target_host"])) {
-			$lFormSubmitted = TRUE;
+			$lFormSubmitted = true;
 		}// end if
 
 		if ($lFormSubmitted){
@@ -48,7 +49,7 @@
 				 * We validate that an IP is 4 octets, IPV6 fits the pattern, and that domain name is IANA format */
     			$lTargetHostValidated = preg_match(IPV4_REGEX_PATTERN, $lTargetHost) || preg_match(DOMAIN_NAME_REGEX_PATTERN, $lTargetHost) || preg_match(IPV6_REGEX_PATTERN, $lTargetHost);
 	    	}else{
-    			$lTargetHostValidated=TRUE; 			// do not perform validation
+    			$lTargetHostValidated = true; 			// do not perform validation
 	    	}// end if
 
 	    	if ($lProtectAgainstXSS) {
@@ -66,8 +67,8 @@
 
 <div class="page-title">DNS Lookup</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <!-- BEGIN HTML OUTPUT  -->
 <script type="text/javascript">
@@ -96,8 +97,8 @@
 </script>
 
 <span>
-	<a style="text-decoration: none; cursor: pointer;" href="./webservices/soap/ws-lookup-dns-record.php">
-		<img style="vertical-align: middle;" src="./images/ajax_logo-75-79.jpg" height="75px" width="78px" />
+	<a style="text-decoration: none; cursor: pointer;" href="./webservices/soap/ws-dns-lookup.php">
+		<img style="vertical-align: middle;" src="./images/ajax_logo-75-79.jpg" height="75px" width="78px" alt="AJAX Logo" />
 		<span style="font-weight:bold;">Switch to SOAP Web Service Version of this Page</span>
 	</a>
 </span>
@@ -125,7 +126,7 @@
 						autofocus="autofocus"
 						<?php
 							if ($lEnableHTMLControls) {
-								echo('minlength="1" maxlength="20" required="required"');
+								echo 'minlength="1" maxlength="20" required="required"';
 							}// end if
 						?>
 				/>

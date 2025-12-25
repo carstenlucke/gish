@@ -1,14 +1,13 @@
-
 <?php
 
 	try{
 		/* ------------------------------------------
 		 * Constants used in application
 		* ------------------------------------------ */
-		require_once ('./includes/constants.php');
+		require_once './includes/constants.php';
 
 		/* We use the session on this page */
-		if (session_status() == PHP_SESSION_NONE){
+		if (session_status() === PHP_SESSION_NONE && !headers_sent()){
 			session_start();
 		}// end if
 
@@ -19,23 +18,23 @@
 		/* ------------------------------------------
 		 * initialize custom error handler
 		* ------------------------------------------ */
-		require_once (__ROOT__.'/classes/CustomErrorHandler.php');
+		require_once __SITE_ROOT__.'/classes/CustomErrorHandler.php';
 		if (!isset($CustomErrorHandler)){
 			$CustomErrorHandler =
-			new CustomErrorHandler(__ROOT__.'/owasp-esapi-php/src/', $_SESSION["security-level"]);
+			new CustomErrorHandler($_SESSION["security-level"]);
 		}// end if
 
 		/* ------------------------------------------
 		 * initialize SQL Query Handler
 		* ------------------------------------------ */
-		require_once (__ROOT__.'/classes/SQLQueryHandler.php');
-		$SQLQueryHandler = new SQLQueryHandler(__ROOT__."/owasp-esapi-php/src/", $_SESSION["security-level"]);
+		require_once __SITE_ROOT__.'/classes/SQLQueryHandler.php';
+		$SQLQueryHandler = new SQLQueryHandler($_SESSION["security-level"]);
 
 		/* ------------------------------------------
 		 * initialize You Tube Video Handler Handler
 		* ------------------------------------------ */
-		require_once (__ROOT__.'/classes/YouTubeVideoHandler.php');
-		$YouTubeVideoHandler = new YouTubeVideoHandler(__ROOT__."/owasp-esapi-php/src/", $_SESSION["security-level"]);
+		require_once __SITE_ROOT__.'/classes/YouTubeVideoHandler.php';
+		$YouTubeVideoHandler = new YouTubeVideoHandler($_SESSION["security-level"]);
 
 		if (isset($_REQUEST["level1HintIncludeFile"])) {
 			$lIncludeFileKey = $_REQUEST["level1HintIncludeFile"];
@@ -59,8 +58,8 @@
    	}// end try;
 ?>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="en" xml:lang="en">
 	<head>
 		<link rel="stylesheet" type="text/css" href="./styles/global-styles.css" />
 		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -73,7 +72,7 @@
 			</tr>
 			<tr>
 				<td class="hint-body">
-					<?php include_once ('./includes/hints/'.$lIncludeFile); ?>
+					<?php include_once './includes/hints/'.$lIncludeFile; ?>
 				</td>
 			</tr>
 		</table>

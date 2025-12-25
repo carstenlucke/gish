@@ -13,29 +13,34 @@
     //initialize custom error handler
     require_once 'classes/CustomErrorHandler.php';
     if (!isset($CustomErrorHandler)){
-        $CustomErrorHandler = new CustomErrorHandler("owasp-esapi-php/src/", $lSecurityLevel);
+        $CustomErrorHandler = new CustomErrorHandler($lSecurityLevel);
     }// end if
 
     require_once 'classes/MySQLHandler.php';
-    $MySQLHandler = new MySQLHandler("owasp-esapi-php/src/", $lSecurityLevel);
-    $lErrorDetected = FALSE;
+    $MySQLHandler = new MySQLHandler($lSecurityLevel);
+    
+	function format($pMessage, $pLevel) {
+		$styles = [
+			"I" => "database-informative-message",
+			"S" => "database-success-message",
+			"F" => "database-failure-message",
+			"W" => "database-warning-message"
+		];
+	
+		// Use the level-specific style if it exists, otherwise default to "database-informative-message"
+		$lStyle = $styles[$pLevel] ?? "database-informative-message";
+	
+		return "<div class=\"".$lStyle."\">" . htmlspecialchars($pMessage) . "</div>";
+	}
 
-    function format($pMessage, $pLevel ) {
-    	switch ($pLevel){
-    		case "I": $lStyle = "database-informative-message";break;
-    		case "S": $lStyle = "database-success-message";break;
-    		case "F": $lStyle = "database-failure-message";break;
-    		case "W": $lStyle = "database-warning-message";break;
-    	}// end switch
-
-    	return "<div class=\"".$lStyle."\">" . $pMessage . "</div>";
-    }// end function
+	$lErrorDetected = false;
 ?>
 
     <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/1999/REC-html401-19991224/loose.dtd">
-    <html>
-    	<head>
-    		<link rel="shortcut icon" href="./images/favicon.ico" type="image/x-icon" />
+	<html lang="en" xml:lang="en">
+		<head>
+			<title>Set Up Database</title>
+			<link rel="shortcut icon" href="./images/favicon.ico" type="image/x-icon" />
     		<link rel="stylesheet" type="text/css" href="./styles/global-styles.css" />
     	</head>
     	<body>
@@ -66,7 +71,7 @@
     		$lQueryString = "DROP DATABASE IF EXISTS " . MySQLHandler::$mMySQLDatabaseName;
     		$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     		if (!$lQueryResult) {
-    			$lErrorDetected = TRUE;
+    			$lErrorDetected = true;
     			echo format("Was not able to drop database " . MySQLHandler::$mMySQLDatabaseName,"F");
     		}else{
     			echo format("Executed query 'DROP DATABASE IF EXISTS' for database " . MySQLHandler::$mMySQLDatabaseName . " with result ".$lQueryResult,"S");
@@ -82,7 +87,7 @@
     	$lQueryString = "CREATE DATABASE " . MySQLHandler::$mMySQLDatabaseName;
     	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
     		echo format("Was not able to create database " . MySQLHandler::$mMySQLDatabaseName,"F");
     	}else{
     		echo format("Executed query 'CREATE DATABASE' for database " . MySQLHandler::$mMySQLDatabaseName . " with result ".$lQueryResult,"S");
@@ -92,11 +97,49 @@
     	$lQueryString = "USE " . MySQLHandler::$mMySQLDatabaseName;
     	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
     		echo format("Was not able to use database " . MySQLHandler::$mMySQLDatabaseName,"F");
     	}else{
     		echo format("Executed query 'USE DATABASE' " . MySQLHandler::$mMySQLDatabaseName . " with result ".$lQueryResult,"I");
     	}// end if
+
+		$lQueryString = "
+			CREATE TABLE IF NOT EXISTS security_level (
+				id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				level INT NOT NULL DEFAULT 0
+			);
+		";
+		
+		$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
+		
+		if (!$lQueryResult) {
+			$lErrorDetected = true;
+			echo format("Failed to create 'security_level' table.", "F");
+		} else {
+			echo format("Successfully created 'security_level' table.", "S");
+		
+			// Ensure AUTO_INCREMENT starts at 1 (default behavior)
+			$lAutoIncrementQuery = "ALTER TABLE security_level AUTO_INCREMENT = 1;";
+			$lAutoIncrementResult = $MySQLHandler->executeQuery($lAutoIncrementQuery);
+		
+			if (!$lAutoIncrementResult) {
+				$lErrorDetected = true;
+				echo format("Failed to set AUTO_INCREMENT to 1.", "F");
+			} else {
+				echo format("AUTO_INCREMENT set to start at 1.", "S");
+			}
+		}
+		
+		// Optionally insert the initial value
+		$lInsertQuery = "INSERT INTO security_level (level) VALUES (0)";
+		$lInsertResult = $MySQLHandler->executeQuery($lInsertQuery);
+		
+		if (!$lInsertResult) {
+			$lErrorDetected = true;
+			echo format("Failed to insert initial security level.", "F");
+		} else {
+			echo format("Initial security level set to 0.", "S");
+		}
 
     	$lQueryString = 'CREATE TABLE user_poll_results( '.
     			'cid INT NOT NULL AUTO_INCREMENT, '.
@@ -106,9 +149,10 @@
     			'PRIMARY KEY(cid))';
     	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
+			echo format("Failed to create 'user_poll_results' table.", "F");
     	}else{
-    		echo format("Executed query 'CREATE TABLE' with result ".$lQueryResult,"S");
+			echo format("Successfully created 'user_poll_results' table.", "S");
     	}// end if
 
     	$lQueryString = 'CREATE TABLE blogs_table( '.
@@ -119,25 +163,31 @@
     			 'PRIMARY KEY(cid))';
     	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
+			echo format("Failed to create 'blogs_table' table.", "F");
     	}else{
-    		echo format("Executed query 'CREATE TABLE' with result ".$lQueryResult,"S");
+			echo format("Successfully created 'blogs_table' table.", "S");
     	}// end if
 
-    	$lQueryString = 'CREATE TABLE accounts( '.
-    			 'cid INT NOT NULL AUTO_INCREMENT, '.
-    	         'username TEXT, '.
-    	         'password TEXT, '.
-    			 'mysignature TEXT, '.
-    			 'is_admin VARCHAR(5),'.
-    			 'firstname TEXT, '.
-    			 'lastname TEXT, '.
-    			 'PRIMARY KEY(cid))';
-    	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
+		$lQueryString = 'CREATE TABLE accounts (
+				cid INT NOT NULL AUTO_INCREMENT,
+				username VARCHAR(255) NOT NULL UNIQUE,
+				password VARCHAR(255) NOT NULL,
+				mysignature TEXT,
+				is_admin BOOLEAN DEFAULT FALSE,
+				firstname VARCHAR(255),
+				lastname VARCHAR(255),
+				client_id CHAR(32) NOT NULL UNIQUE,
+				client_secret VARCHAR(64) NOT NULL UNIQUE,
+				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+				PRIMARY KEY(cid)
+			)';
+		$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
+			echo format("Failed to create 'accounts' table.", "F");
     	}else{
-    		echo format("Executed query 'CREATE TABLE' with result ".$lQueryResult,"S");
+			echo format("Successfully created 'accounts' table.", "S");
     	}// end if
 
     	$lQueryString = 'CREATE TABLE hitlog( '.
@@ -150,60 +200,91 @@
     			 'PRIMARY KEY(cid))';
     	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
+			echo format("Failed to create 'hitlog' table.", "F");
     	}else{
-    		echo format("Executed query 'CREATE TABLE' with result ".$lQueryResult,"S");
+			echo format("Successfully created 'hitlog' table.", "S");
     	}// end if
 
-    	$lQueryString = "INSERT INTO accounts (username, password, mysignature, is_admin, firstname, lastname) VALUES
-    		('admin', 'adminpass', 'g0t r00t?', 'TRUE' ,'System' ,'Administrator'),
-    		('adrian', 'somepassword', 'Zombie Films Rock!', 'TRUE' ,'Adrian' ,'Crenshaw'),
-    		('john', 'monkey', 'I like the smell of confunk', 'FALSE' ,'John' ,'Pentest'),
-    		('jeremy', 'password', 'd1373 1337 speak', 'FALSE' ,'Jeremy' ,'Druin'),
-    		('bryce', 'password', 'I Love SANS', 'FALSE' ,'Bryce' ,'Galbraith'),
-    		('samurai', 'samurai', 'Carving fools', 'FALSE' ,'Samurai' ,'WTF'),
-    		('jim', 'password', 'Rome is burning', 'FALSE' ,'Jim' ,'Rome'),
-    		('bobby', 'password', 'Hank is my dad', 'FALSE' ,'Bobby' ,'Hill'),
-    		('simba', 'password', 'I am a super-cat', 'FALSE' ,'Simba' ,'Lion'),
-    		('dreveil', 'password', 'Preparation H', 'FALSE' ,'Dr.' ,'Evil'),
-    		('scotty', 'password', 'Scotty do', 'FALSE' ,'Scotty' ,'Evil'),
-    		('cal', 'password', 'C-A-T-S Cats Cats Cats', 'FALSE' ,'John' ,'Calipari'),
-    		('john', 'password', 'Do the Duggie!', 'FALSE' ,'John' ,'Wall'),
-    		('kevin', '42', 'Doug Adams rocks', 'FALSE' ,'Kevin' ,'Johnson'),
-    		('dave', 'set', 'Bet on S.E.T. FTW', 'FALSE' ,'Dave' ,'Kennedy'),
-    		('patches', 'tortoise', 'meow', 'FALSE' ,'Patches' ,'Pester'),
-    		('rocky', 'stripes', 'treats?', 'FALSE' ,'Rocky' ,'Paws'),
-    		('tim', 'lanmaster53', 'Because reconnaissance is hard to spell', 'FALSE' ,'Tim' ,'Tomes'),
-    		('ABaker', 'SoSecret', 'Muffin tops only', 'TRUE' ,'Aaron' ,'Baker'),
-    		('PPan', 'NotTelling', 'Where is Tinker?', 'FALSE' ,'Peter' ,'Pan'),
-    		('CHook', 'JollyRoger', 'Gator-hater', 'FALSE' ,'Captain' ,'Hook'),
-    		('james', 'i<3devs', 'Occupation: Researcher', 'FALSE' ,'James' ,'Jardine'),
-    		('ed', 'pentest', 'Commandline KungFu anyone?', 'FALSE' ,'Ed' ,'Skoudis')";
-    	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
-    	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+		$lQueryString = 'INSERT INTO accounts (username, password, mysignature, is_admin, firstname, lastname, client_id, client_secret) VALUES
+			("admin", "adminpass", "g0t r00t?", true, "System", "Administrator", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("adrian", "somepassword", "Zombie Films Rock!", true, "Adrian", "Crenshaw", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("patches", "tortoise", "meow", false, "Patches", "Pester", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("jeremy", "password", "d1373 1337 speak", false, "Jeremy", "Druin", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("bryce", "password", "I Love SANS", false, "Bryce", "Galbraith", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("samurai", "samurai", "Carving fools", false, "Samurai", "WTF", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("dodgerjim", "password", "Rome is burning", false, "Jim", "Rome", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("bobby", "password", "Hank is my dad", false, "Bobby", "Hill", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("simba", "password", "I am a super-cat", false, "Simba", "Lion", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("dreveil", "password", "Preparation H", false, "Dr.", "Evil", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("scotty", "password", "Scotty do", false, "Scotty", "Evil", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("cal", "password", "C-A-T-S Cats Cats Cats", false, "John", "Calipari", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("john", "password", "Do the Duggie!", false, "John", "Wall", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("kevin", "42", "Doug Adams rocks", false, "Kevin", "Johnson", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("dave", "set", "Bet on S.E.T. FTW", false, "Dave", "Kennedy", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("rocky", "stripes", "treats?", false, "Rocky", "Paws", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("tim", "lanmaster53", "Because reconnaissance is hard to spell", false, "Tim", "Tomes", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("ABaker", "SoSecret", "Muffin tops only", true, "Aaron", "Baker", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("PPan", "NotTelling", "Where is Tinker?", false, "Peter", "Pan", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("CHook", "JollyRoger", "Gator-hater", false, "Captain", "Hook", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("james", "i<3devs", "Occupation: Researcher", false, "James", "Jardine", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("ed", "pentest", "Commandline KungFu anyone?", false, "Ed", "Skoudis", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("joe", "holly", "Off by one error", false, "Joe", "Holly", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("peter", "initech123", "I dont like my job", false, "Peter", "Gibbons", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("milton", "stapler", "Wheres my stapler?", false, "Milton", "Waddams", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("bill", "tpsreports", "Did you get the memo?", true, "Bill", "Lumbergh", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("samir", "nojoke123", "No one can pronounce my last name", false, "Samir", "Nagheenanajar", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("michael_b", "michael123", "We fixed the glitch", false, "Michael", "Bolton", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("michael_s", "worldsbestboss", "Worlds Best Boss", true, "Michael", "Scott", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("jim", "bearsbeatsbattlestar", "Pranking Dwight", false, "Jim", "Halpert", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("dwight", "assistant_to_the_regional_manager", "Bears. Beets. Battlestar Galactica.", false, "Dwight", "Schrute", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("pam", "pammy123", "Dunder Mifflin", false, "Pam", "Beesly", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("ryan", "temp123", "I am the temp", false, "Ryan", "Howard", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("derek", "bluestrike", "Im pretty sure theres more to life than being really, really ridiculously good looking", false, "Derek", "Zoolander", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("hansel", "hansel123", "Hansel. Hes so hot right now.", false, "Hansel", "", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("mugatu", "mugatu123", "I invented the piano key necktie!", true, "Jacobim", "Mugatu", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("matilda", "journalist123", "Investigative reporter", false, "Matilda", "Jeffries", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("stackhawk", "Kaakaww", "Swooping in for security", false, "Stack", "Hawk", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("zoolander", "zoolander123", "I am really, really, really, ridiculously good looking", false, "Derek", "Zoolander", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '"),
+			("maury", "maury123", "Youre the guy who cant turn left", false, "Maury", "Ballstein", "' . bin2hex(random_bytes(16)) . '", "' . bin2hex(random_bytes(32)) . '");';
+		$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
+		if (!$lQueryResult) {
+    		$lErrorDetected = true;
+			echo format("Failed to insert data into 'accounts' table.", "F");
     	}else{
-    		echo "<div class=\"database-success-message\">Executed query 'INSERT INTO TABLE' with result ".$lQueryResult."</div>";
+			echo format("Successfully inserted data into 'accounts' table.", "S");
     	}// end if
 
-    	$lQueryString ="INSERT INTO `blogs_table` (`cid`, `blogger_name`, `comment`, `date`) VALUES
-    		(1, 'adrian', 'Well, I''ve been working on this for a bit. Welcome to my crappy blog software. :)', '2009-03-01 22:26:12'),
-    		(2, 'adrian', 'Looks like I got a lot more work to do. Fun, Fun, Fun!!!', '2009-03-01 22:26:54'),
-    		(3, 'anonymous', 'An anonymous blog? Huh? ', '2009-03-01 22:27:11'),
-    		(4, 'ed', 'I love me some Netcat!!!', '2009-03-01 22:27:48'),
-    		(5, 'john', 'Listen to Pauldotcom!', '2009-03-01 22:29:04'),
-    		(6, 'jeremy', 'Mutillidae is fun', '2009-03-01 22:29:49'),
-    		(7, 'john', 'Chocolate is GOOD!!!', '2009-03-01 22:30:06'),
-    		(8, 'admin', 'Fear me, for I am ROOT!', '2009-03-01 22:31:13'),
-    		(9, 'dave', 'Social Engineering is woot-tastic', '2009-03-01 22:31:13'),
-    		(10, 'kevin', 'Read more Douglas Adams', '2009-03-01 22:31:13'),
-    		(11, 'kevin', 'You should take SANS SEC542', '2009-03-01 22:31:13'),
-    		(12, 'asprox', 'Fear me, for I am asprox!', '2009-03-01 22:31:13')";
-    	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
+		$lQueryString = "INSERT INTO `blogs_table` (`cid`, `blogger_name`, `comment`, `date`) VALUES
+			(1, 'adrian', 'Welcome to my crappy blog software. :)', '2009-03-01 22:26:12'),
+			(2, 'adrian', 'Looks like I got a lot more work to do. Fun, Fun, Fun!!!', '2009-03-01 22:26:54'),
+			(3, 'anonymous', 'An anonymous blog? Huh?', '2009-03-01 22:27:11'),
+			(4, 'ed', 'I love me some Netcat!!!', '2009-03-01 22:27:48'),
+			(5, 'john', 'Listen to Pauldotcom!', '2009-03-01 22:29:04'),
+			(6, 'jeremy', 'Mutillidae is fun', '2009-03-01 22:29:49'),
+			(7, 'john', 'Chocolate is GOOD!!!', '2009-03-01 22:30:06'),
+			(8, 'admin', 'Fear me, for I am ROOT!', '2009-03-01 22:31:13'),
+			(9, 'dave', 'Social Engineering is woot-tastic', '2009-03-01 22:31:13'),
+			(10, 'kevin', 'Read more Douglas Adams', '2009-03-01 22:31:13'),
+			(11, 'jim', 'Bears eat beets', '2009-03-01 22:31:13'),
+			(12, 'michael_s', 'I declare BANKRUPTCY!', '2024-10-07 09:00:00'),
+			(13, 'jim', 'Just pulled off the ultimate prank on Dwight.', '2024-10-07 09:05:00'),
+			(14, 'pam', 'Art school has been really fulfilling.', '2024-10-07 09:10:00'),
+			(15, 'dwight', 'Bears. Beets. Battlestar Galactica.', '2024-10-07 09:15:00'),
+			(16, 'ryan', 'Starting my new tech venture.', '2024-10-07 09:20:00'),
+			(17, 'peter', 'Today, I didnt really do much work. Feels great.', '2024-10-07 09:25:00'),
+			(18, 'milton', 'They took my stapler again...', '2024-10-07 09:30:00'),
+			(19, 'bill', 'Did you get the memo?', '2024-10-07 09:35:00'),
+			(20, 'samir', 'No one can still pronounce my last name...', '2024-10-07 09:40:00'),
+			(21, 'michael_b', 'Its not that Michael Bolton!', '2024-10-07 09:45:00'),
+			(22, 'mugatu', 'The Derelicte campaign is going great!', '2024-10-07 09:50:00'),
+			(23, 'derek', 'Being ridiculously good looking has its perks.', '2024-10-07 09:55:00')";
+		$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
+			echo format("Failed to insert data into 'blogs_table' table.", "F");
     	}else{
-    		echo "<div class=\"database-success-message\">Executed query 'INSERT INTO TABLE' with result ".$lQueryResult."</div>";
+			echo format("Successfully inserted data into 'blogs_table' table.", "S");
     	}// end if
 
     	$lQueryString = 'CREATE TABLE credit_cards( '.
@@ -214,23 +295,30 @@
     			 'PRIMARY KEY(ccid))';
     	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
+			echo format("Failed to create 'credit_cards' table.", "F");
     	}else{
-    		echo format("Executed query 'CREATE TABLE' with result ".$lQueryResult,"S");
+			echo format("Successfully created 'credit_cards' table.", "S");
     	}// end if
 
-    	$lQueryString ="INSERT INTO `credit_cards` (`ccid`, `ccnumber`, `ccv`, `expiration`) VALUES
-    		(1, '4444111122223333', '745', '2012-03-01 10:01:12'),
-    		(2, '7746536337776330', '722', '2015-04-01 07:00:12'),
-    		(3, '8242325748474749', '461', '2016-03-01 11:55:12'),
-    		(4, '7725653200487633', '230', '2017-06-01 04:33:12'),
-    		(5, '1234567812345678', '627', '2018-11-01 13:31:13')";
-
+		$lQueryString = "INSERT INTO `credit_cards` (`ccid`, `ccnumber`, `ccv`, `expiration`) VALUES
+			(1, '4111111111111111', '123', '2024-10-01 10:01:12'), -- Visa Test Card
+			(2, '5555555555554444', '321', '2025-04-01 07:00:12'), -- Mastercard Test Card
+			(3, '378282246310005', '231', '2026-03-01 11:55:12'), -- American Express Test Card
+			(4, '6011111111111117', '456', '2027-06-01 04:33:12'), -- Discover Test Card
+			(5, '4222222222222', '789', '2028-11-01 13:31:13'), -- Visa Short Test Card
+			(6, '4000002760003184', '123', '2025-08-01 12:00:00'), -- Visa Debit Test Card
+			(7, '2223000048400011', '234', '2026-09-01 09:30:45'), -- Mastercard Debit Test Card
+			(8, '6011000990139424', '345', '2027-02-01 15:45:30'), -- Discover Debit Test Card
+			(9, '4000000000000002', '456', '2025-05-01 08:15:00'), -- Visa Credit Test Card
+			(10, '3566002020360505', '567', '2024-12-01 18:20:10'), -- JCB Test Card
+			(11, '5038370200000000', '678', '2026-07-01 11:00:00') -- Maestro Test Card";
     	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
+			echo format("Failed to insert data into 'credit_cards' table.", "F");
     	}else{
-    		echo "<div class=\"database-success-message\">Executed query 'INSERT INTO TABLE' with result ".$lQueryResult."</div>";
+			echo format("Successfully inserted data into 'credit_cards' table.", "S");
     	}// end if
 
     	$lQueryString =
@@ -243,39 +331,54 @@
     			'PRIMARY KEY(tool_id))';
     	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
+			echo format("Failed to create 'pen_test_tools' table.", "F");
     	}else{
-    		echo format("Executed query 'CREATE TABLE' with result ".$lQueryResult,"S");
+			echo format("Successfully created 'pen_test_tools' table.", "S");
     	}// end if
 
-    	$lQueryString ="INSERT INTO `pen_test_tools` (`tool_id`, `tool_name`, `phase_to_use`, `tool_type`, `comment`) VALUES
-    		(1, 'WebSecurify', 'Discovery', 'Scanner', 'Can capture screenshots automatically'),
-    		(2, 'Grendel-Scan', 'Discovery', 'Scanner', 'Has interactive-mode. Lots plug-ins. Includes Nikto. May not spider JS menus well.'),
-    		(3, 'Skipfish', 'Discovery', 'Scanner', 'Agressive. Fast. Uses wordlists to brute force directories.'),
-    		(4, 'w3af', 'Discovery', 'Scanner', 'GUI simple to use. Can call sqlmap. Allows scan packages to be saved in profiles. Provides evasion, discovery, brute force, vulneraility assessment (audit), exploitation, pattern matching (grep).'),
-    		(5, 'Burp-Suite', 'Discovery', 'Scanner', 'GUI simple to use. Provides highly configurable manual scan assistence with productivity enhancements.'),
-    		(6, 'Netsparker Community Edition', 'Discovery', 'Scanner', 'Excellent spider abilities and reporting. GUI driven. Runs on Windows. Good at SQLi and XSS detection. From Mavituna Security. Professional version available for purchase.'),
-    		(7, 'NeXpose', 'Discovery', 'Scanner', 'GUI driven. Runs on Windows. From Rapid7. Professional version available for purchase. Updates automatically. Requires large amounts of memory.'),
-    		(8, 'Hailstorm', 'Discovery', 'Scanner', 'From Cenzic. Professional version requires dedicated staff, multiple dediciated servers, professional pen-tester to analyze results, and very large license fee. Extensive scanning ability. Very large vulnerability database. Highly configurable. Excellent reporting. Can scan entire networks of web applications. Extremely expensive. Requires large amounts of memory.'),
-    		(9, 'Tamper Data', 'Discovery', 'Interception Proxy', 'Firefox add-on. Easy to use. Tampers with POST parameters and HTTP Headers. Does not tamper with URL query parameters. Requires manual browsing.'),
-    		(10, 'DirBuster', 'Discovery', 'Fuzzer', 'OWASP tool. Fuzzes directory names to brute force directories.'),
-    		(11, 'SQL Inject Me', 'Discovery', 'Fuzzer', 'Firefox add-on. Attempts common strings which elicit XSS responses. Not compatible with Firefox 8.0.'),
-    		(12, 'XSS Me', 'Discovery', 'Fuzzer', 'Firefox add-on. Attempts common strings which elicit responses from databases when SQL injection is present. Not compatible with Firefox 8.0.'),
-    		(13, 'GreaseMonkey', 'Discovery', 'Browser Manipulation Tool', 'Firefox add-on. Allows the user to inject Javascripts and change page.'),
-    		(14, 'NSLookup', 'Reconnaissance', 'DNS Server Query Tool', 'DNS query tool can query DNS name or reverse lookup on IP. Set debug for better output. Premiere tool on Windows but Linux perfers Dig. DNS traffic generally over UDP 53 unless response long then over TCP 53. Online version combined with anonymous proxy or TOR network may be prefered for stealth.'),
-    		(15, 'Whois', 'Reconnaissance', 'Domain name lookup service', 'Whois is available in Linux naitvely and Windows as a Sysinternals download plus online. Whois can lookup the registrar of a domain and the IP block associated. An online version is http://network-tools.com/'),
-    		(16, 'Dig', 'Reconnaissance', 'DNS Server Query Tool', 'The Domain Information Groper is prefered on Linux over NSLookup and provides more information natively. NSLookup must be in debug mode to give similar output. DIG can perform zone transfers if the DNS server allows transfers.'),
-    		(17, 'Fierce Domain Scanner', 'Reconnaissance', 'DNS Server Query Tool', 'Powerful DNS scan tool. FDS is a Perl program which scans and reverse scans a domain plus scans IPs within the same block to look for neighoring machines. Available in the Samurai and Backtrack distributions plus http://ha.ckers.org/fierce/'),
-    		(18, 'host', 'Reconnaissance', 'DNS Server Query Tool', 'A simple DNS lookup tool included with BIND. The tool is a friendly and capible command line tool with excellent documentation. Does not posess the automation of FDS.'),
-    		(19, 'zaproxy', 'Reconnaissance', 'Interception Proxy', 'OWASP Zed Attack Proxy. An interception proxy that can also passively or actively scan applications as well as perform brute-forcing. Similar to Burp-Suite without the disadvantage of requiring a costly license.'),
-    		(20, 'Google intitle', 'Discovery', 'Search Engine','intitle and site directives allow directory discovery. GHDB available to provide hints. See Hackers for Charity site.')";
-    	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
-    	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
-    	}else{
-    		echo "<div class=\"database-success-message\">Executed query 'INSERT INTO TABLE' with result ".$lQueryResult."</div>";
-    	}// end if
-
+		$lQueryString = "
+		INSERT INTO `pen_test_tools` (`tool_id`, `tool_name`, `phase_to_use`, `tool_type`, `comment`) VALUES
+		(1, 'Burp Suite Professional', 'Discovery', 'Interception Proxy', 'Advanced manual testing with automated scanning capabilities.'),
+		(2, 'OWASP ZAP', 'Discovery', 'Interception Proxy', 'Free, open-source alternative to Burp Suite with active and passive scanning.'),
+		(3, 'Nmap', 'Reconnaissance', 'Network Scanner', 'Highly versatile tool for network discovery and security auditing.'),
+		(4, 'Nuclei', 'Discovery', 'Scanner', 'Automated scanner powered by custom templates for detecting vulnerabilities.'),
+		(5, 'SQLMap', 'Exploitation', 'SQL Injection Tool', 'Automates the process of detecting and exploiting SQL injection flaws.'),
+		(6, 'Metasploit Framework', 'Exploitation', 'Exploitation Framework', 'Comprehensive platform for developing, testing, and using exploits.'),
+		(7, 'Recon-ng', 'Reconnaissance', 'Framework', 'Web reconnaissance framework with modular structure.'),
+		(8, 'Amass', 'Reconnaissance', 'DNS Enumeration Tool', 'Performs subdomain enumeration and DNS reconnaissance.'),
+		(9, 'Shodan', 'Discovery', 'Search Engine', 'Search engine for Internet-connected devices with vulnerabilities.'),
+		(10, 'Aquatone', 'Discovery', 'Visual Reconnaissance Tool', 'Captures screenshots of websites for quick inspection.'),
+		(11, 'Sublist3r', 'Reconnaissance', 'DNS Enumeration Tool', 'Finds subdomains across multiple sources.'),
+		(12, 'Dirsearch', 'Discovery', 'Directory Brute-forcing Tool', 'Brute-forces web directories to discover hidden content.'),
+		(13, 'Hydra', 'Exploitation', 'Password Cracking Tool', 'Performs brute force attacks on various services like SSH, FTP, etc.'),
+		(14, 'John the Ripper', 'Exploitation', 'Password Cracker', 'Advanced password cracking tool with modular capabilities.'),
+		(15, 'Hashcat', 'Exploitation', 'Password Cracker', 'GPU-based password cracking tool for large hash sets.'),
+		(16, 'Responder', 'Exploitation', 'Network Attack Tool', 'Intercepts and relays authentication traffic on the network.'),
+		(17, 'Aircrack-ng', 'Exploitation', 'Wireless Attack Tool', 'Suite for auditing Wi-Fi networks by capturing and cracking keys.'),
+		(18, 'Wireshark', 'Reconnaissance', 'Network Protocol Analyzer', 'Captures and analyzes network traffic.'),
+		(19, 'PwnCat', 'Exploitation', 'Post-Exploitation Tool', 'Advanced backdoor framework for remote access.'),
+		(20, 'Cobalt Strike', 'Exploitation', 'Red Teaming Tool', 'Commercial tool for advanced adversary simulations.'),
+		(21, 'BloodHound', 'Discovery', 'Active Directory Tool', 'Maps out Active Directory relationships for attack path discovery.'),
+		(22, 'PowerShell Empire', 'Exploitation', 'Post-Exploitation Tool', 'Framework for managing agents and post-exploitation operations.'),
+		(23, 'Ffuf', 'Discovery', 'Fuzzer', 'Fast web fuzzer written in Go. Useful for directory and parameter brute-forcing.'),
+		(24, 'Ghidra', 'Analysis', 'Reverse Engineering Tool', 'Open-source reverse engineering suite from NSA.'),
+		(25, 'Radare2', 'Analysis', 'Reverse Engineering Tool', 'Powerful command-line framework for binary analysis and exploitation.'),
+		(26, 'LinPEAS', 'Discovery', 'Privilege Escalation Tool', 'Searches for potential privilege escalation vectors on Linux systems.'),
+		(27, 'Windows Exploit Suggester', 'Discovery', 'Privilege Escalation Tool', 'Suggests exploits based on missing patches.'),
+		(28, 'Maltego', 'Reconnaissance', 'OSINT Tool', 'Graphs and correlates public data for OSINT investigations.'),
+		(29, 'TheHarvester', 'Reconnaissance', 'OSINT Tool', 'Collects emails, subdomains, and names from public sources.'),
+		(30, 'Censys', 'Discovery', 'Search Engine', 'Search engine for Internet-connected devices and vulnerabilities.');";
+	
+		$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
+		
+		if (!$lQueryResult) {
+			$lErrorDetected = true;
+			echo format("Failed to populate 'pen_test_tools' table.", "F");
+		} else {
+			echo format("Successfully populated 'pen_test_tools' table.", "S");
+		}
+	
     	$lQueryString =
     			'CREATE TABLE captured_data('.
     				'data_id INT NOT NULL AUTO_INCREMENT, '.
@@ -290,9 +393,10 @@
     			')';
     	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
+			echo format("Failed to create 'captured_data' table.", "F");
     	}else{
-    		echo format("Executed query 'CREATE TABLE' with result ".$lQueryResult,"S");
+			echo format("Successfully created 'captured_data' table.", "S");
     	}// end if
 
     	$lQueryString =
@@ -304,9 +408,10 @@
     			')';
     	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
+			echo format("Failed to create 'page_hints' table.", "F");
     	}else{
-    		echo format("Executed query 'CREATE TABLE' with result ".$lQueryResult,"S");
+			echo format("Successfully created 'page_hints' table.", "S");
     	}// end if
 
     	$lQueryString =
@@ -318,9 +423,10 @@
     			')';
     	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
+			echo format("Failed to create 'page_help' table.", "F");
     	}else{
-    		echo format("Executed query 'CREATE TABLE' with result ".$lQueryResult,"S");
+			echo format("Successfully created 'page_help' table.", "S");
     	}// end if
 
     	$lQueryString ="INSERT INTO `page_help` (`page_name`, `help_text_key`, `order_preference`) VALUES
@@ -666,6 +772,16 @@
     			('ssl-misconfiguration.php', 56, 1),
     			('ssl-misconfiguration.php', 59, 1),
     			('ssl-misconfiguration.php', 60, 1),
+    			('test-connectivity.php', 11, 3),
+    			('test-connectivity.php', 55, 3),
+    			('test-connectivity.php', 12, 1),
+    			('test-connectivity.php', 13, 1),
+    			('test-connectivity.php', 20, 1),
+    			('test-connectivity.php', 30, 1),
+    			('test-connectivity.php', 48, 1),
+    			('test-connectivity.php', 56, 1),
+    			('test-connectivity.php', 59, 1),
+    			('test-connectivity.php', 131, 1),
     			('text-file-viewer.php', 11, 3),
     			('text-file-viewer.php', 55, 3),
     			('text-file-viewer.php', 12, 1),
@@ -752,9 +868,10 @@
 
     	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
+			echo format("Failed to insert data into 'page_help' table.", "F");
     	}else{
-    		echo "<div class=\"database-success-message\">Executed query 'INSERT INTO TABLE' with result ".$lQueryResult."</div>";
+			echo format("Successfully inserted data into 'page_help' table.", "S");
     	}// end if
 
     	$lQueryString =
@@ -766,9 +883,10 @@
     		')';
     	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
+			echo format("Failed to create 'level_1_help_include_files' table.", "F");
     	}else{
-    		echo format("Executed query 'CREATE TABLE' with result ".$lQueryResult,"S");
+			echo format("Successfully created 'level_1_help_include_files' table.", "S");
     	}// end if
 
     	/* NOTE: Be sure to keep indexes in the help_texts table
@@ -896,13 +1014,15 @@
     		(128, 'Lab 61', 'lab-61-hint.inc'),
     		(129, 'Lab 62', 'lab-62-hint.inc'),
     		(130, 'Lab 63', 'lab-63-hint.inc'),
+    		(131, 'Server-side Request Forgery (SSRF)', 'server-side-request-forgery-hint.inc'),
     		(999, 'Hints Not Found', 'hints-not-found.inc')";
 
     	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
+			echo format("Failed to insert data into 'level_1_help_include_files' table.", "F");
     	}else{
-    		echo format("Executed query 'CREATE TABLE' with result ".$lQueryResult,"S");
+			echo format("Successfully inserted data into 'level_1_help_include_files' table.", "S");
     	}// end if
 
     	$lQueryString =
@@ -913,9 +1033,10 @@
     			')';
     	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
+			echo format("Failed to create 'help_texts' table.", "F");
     	}else{
-    		echo format("Executed query 'CREATE TABLE' with result ".$lQueryResult,"S");
+			echo format("Successfully created 'help_texts' table.", "S");
     	}// end if
 
     	/* NOTE: Be sure to keep indexes in the help_texts table
@@ -976,13 +1097,18 @@
     		(51, '<span class=\"label\">Client-side Security Control Bypass</span>: This page attempts to implement security using client-side security controls. Any page using such controls, including this page, is vulnerable to security control bypass.'),
     		(53, '<span class=\"label\">SQL Injection with SQLMap</span>: This page contains an sql injection vulnerability. The SQLMap tool may be able to automate testing and confirming this vulnerability.'),
     		(54, '<span class=\"label\">Insufficent Transport Layer Protection</span>: This page is vulnerable to interception with wireshark or tcpdump.'),
-    	    (63, '<span class=\"label\">LDAP Injection</span>: This page is vulnerable to LDAP injection.')";
+    		(55, '<span class=\"label\">Cross-site Scripting with BeEF Framework</span>: Some inputs on this page are vulnerable to Cross-site Scripting (XSS). The input may be hidden.'),
+            (63, '<span class=\"label\">LDAP Injection</span>: This page is vulnerable to LDAP injection.'),
+    	    (66, '<span class=\"label\">JSON Web Tokens (JWT)</span>: This page is vulnerable to JWT injection.'),
+    	    (67, '<span class=\"label\">Cross-origin Resource Sharing (CORS)</span>: This page is vulnerable to CORS injection.'),
+    	    (131, '<span class=\"label\">Server-side Request Forgery (SSRF)</span>: Some inputs on this page are vulnerable to Server-side Request Forgery (SSRF). The input may be hidden.')";
 
     	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
+			echo format("Failed to insert data into 'help_texts' table.", "F");
     	}else{
-    		echo "<div class=\"database-success-message\">Executed query 'INSERT INTO TABLE' with result ".$lQueryResult."</div>";
+			echo format("Successfully inserted data into 'help_texts' table.", "S");
     	}// end if
 
     	$lQueryString = 'CREATE TABLE youTubeVideos( '.
@@ -993,9 +1119,10 @@
     			UNIQUE KEY (identificationToken))';
     	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
     	if (!$lQueryResult) {
-    		$lErrorDetected = TRUE;
+    		$lErrorDetected = true;
+			echo format("Failed to create 'youTubeVideos' table.", "F");
     	}else{
-    		echo format("Executed query 'CREATE TABLE' with result ".$lQueryResult,"S");
+			echo format("Successfully created 'youTubeVideos' table.", "S");
     	}// end if
 
     	$lQueryString = "INSERT INTO youTubeVideos(recordIndetifier, identificationToken, title)
@@ -1010,6 +1137,8 @@
     			(8, 'Mv7wpCIAdp4', 'What is SQL Injection?'),
                 (9, 'DF22sTpcE6w', 'OWASP Dependency Check: Part 1 - How to Install'),
                 (10, 'X47ZkdYnGZI', 'OWASP Dependency Check: Part 2 - How to Scan Your Project'),
+                (11, '1a652-fvQLA', 'Linux Basics: How to Identify File Type'),
+                (12, 'kSVv0AxlTVk', 'What is Server-side Request Forgery (SSRF)?'),
     			(13, 'la5hTlSDKWg', 'Using Burp Intruder Sniper to Fuzz Parameters'),
     			(14, 'YoNlia7B5F0', 'Cross-Site Scripting: Part 1- What is Reflected XSS?'),
     			(15, 'yN6hjtNvhMo', 'Cross-Site Scripting: Part 2 - What is DOM-based XSS?'),
@@ -1159,19 +1288,19 @@
                 (290, '38', 'Mutillidae: Lab 40 Walkthrough'),
                 (291, '39', 'Mutillidae: Lab 41 Walkthrough'),
                 (292, 'fyVmA7nlSVo', 'Mutillidae: Lab 42 Walkthrough'),
-                (293, '41', 'Mutillidae: Lab 43 Walkthrough'),
-                (294, '42', 'Mutillidae: Lab 44 Walkthrough'),
-                (295, '43', 'Mutillidae: Lab 45 Walkthrough'),
-                (296, '44', 'Mutillidae: Lab 46 Walkthrough'),
-                (297, '45', 'Mutillidae: Lab 47 Walkthrough'),
+                (293, 'kr4KD9RJ-hA', 'Mutillidae: Lab 43 Walkthrough'),
+                (294, 'ETK7l27eZTs', 'Mutillidae: Lab 44 Walkthrough'),
+                (295, 'THnZOa93SOs', 'Mutillidae: Lab 45 Walkthrough'),
+                (296, 'LkH_qRqcJzo', 'Mutillidae: Lab 46 Walkthrough'),
+                (297, 'ICXErYUJ3sU', 'Mutillidae: Lab 47 Walkthrough'),
                 (298, '46', 'Mutillidae: Lab 48 Walkthrough'),
-                (299, '47', 'Mutillidae: Lab 49 Walkthrough'),
-                (300, '48', 'Mutillidae: Lab 50 Walkthrough'),
-                (301, '49', 'Mutillidae: Lab 51 Walkthrough'),
-                (302, '50', 'Mutillidae: Lab 52 Walkthrough'),
-                (303, '51', 'Mutillidae: Lab 53 Walkthrough'),
-                (304, '52', 'Mutillidae: Lab 54 Walkthrough'),
-                (305, '53', 'Mutillidae: Lab 55 Walkthrough'),
+                (299, 'Ddnid67vqq4', 'Mutillidae: Lab 49 Walkthrough'),
+                (300, 'px40hbprIOM', 'Mutillidae: Lab 50 Walkthrough'),
+                (301, 'DGYVXsrZrug', 'Mutillidae: Lab 51 Walkthrough'),
+                (302, 'JJOqPu_oyi8', 'Mutillidae: Lab 52 Walkthrough'),
+                (303, 'Gxm1_bkYcZ4', 'Mutillidae: Lab 53 Walkthrough'),
+                (304, 'NF8dxs_CQA0', 'Mutillidae: Lab 54 Walkthrough'),
+                (305, 'x7ibzMx4c3c', 'Mutillidae: Lab 55 Walkthrough'),
                 (306, '54', 'Mutillidae: Lab 56 Walkthrough'),
                 (307, '55', 'Mutillidae: Lab 57 Walkthrough'),
                 (308, '56', 'Mutillidae: Lab 58 Walkthrough'),
@@ -1179,15 +1308,16 @@
     	        (310, 'sVgXHH9GSyk', 'Mutillidae: Lab 60 Walkthrough'),
     	        (311, '6BIdjAYCyKc', 'Mutillidae: Lab 61 Walkthrough'),
     	        (312, 'z0USLZLCPPE', 'Mutillidae: Lab 62 Walkthrough'),
-    	    	(313, '2fQfma45UMc', 'Mutillidae: Lab 63 Walkthrough')";
+    	    	(313, '2fQfma45UMc', 'Mutillidae: Lab 63 Walkthrough'),
+                (314, 'Y4TWdPZp2eA', 'Mutillidae: Lab 51 Walkthrough - Alternate Method')";
 
     $lQueryResult = $MySQLHandler->executeQuery($lQueryString);
 	if (!$lQueryResult) {
-		$lErrorDetected = TRUE;
+		$lErrorDetected = true;
+		echo format("Failed to insert data into 'youTubeVideos' table.", "F");
 	}else{
-		echo "<div class=\"database-success-message\">Executed query 'INSERT INTO TABLE' with result ".$lQueryResult."</div>";
+		echo format("Successfully inserted data into 'youTubeVideos' table.", "S");
 	}// end if
-
 
 	/* ***********************************************************************************
 	 * Create accounts.xml password.txt file from MySQL accounts table
@@ -1203,107 +1333,138 @@
 
 	$lAccountsXML = "";
 	$lAccountsText = "";
-	$lQueryString = "SELECT username, password, mysignature, is_admin FROM accounts;";
+	$lQueryString = "SELECT * FROM accounts;";
 	$lQueryResult = $MySQLHandler->executeQuery($lQueryString);
 
-	if (isset($lQueryResult->num_rows)){
-		if ($lQueryResult->num_rows > 0) {
-			$lResultsFound = TRUE;
-			$lRecordsFound = $lQueryResult->num_rows;
-		}//end if
+	if (isset($lQueryResult->num_rows) && $lQueryResult->num_rows > 0) {
+		$lResultsFound = true;
+		$lRecordsFound = $lQueryResult->num_rows;
 	}//end if
 
 	if ($lResultsFound){
 
 		echo format("Executed query 'SELECT * FROM accounts'. Found ".$lRecordsFound." records.","S");
 
-		$lAccountsXML='<?xml version="1.0" encoding="utf-8"?>'.PHP_EOL;
-		$lAccountsXML.="<Employees>".PHP_EOL;
-		$lCounter=1;
+		$lAccountsXML = '<?xml version="1.0" encoding="utf-8"?>'.PHP_EOL;
+		$lAccountsXML .= "<Accounts>".PHP_EOL;
+		$lCounter = 1;
 		$cTAB = CHR(9);
-
+		
+		$lAccountsText = "CID,Username,Password,Signature,Type,FirstName,LastName,ClientID,ClientSecret".PHP_EOL; // Add CSV header
+		
 		while($row = $lQueryResult->fetch_object()){
-			$lAccountType = $row->is_admin?"Admin":"User";
-		   	$lAccountsXML.=$cTAB.'<Employee ID="'.$lCounter.'">'.PHP_EOL;
-		   	$lAccountsXML.=$cTAB.$cTAB.'<UserName>'.htmlspecialchars($row->username).'</UserName>'.PHP_EOL;
-		   	$lAccountsXML.=$cTAB.$cTAB.'<Password>'.htmlspecialchars($row->password).'</Password>'.PHP_EOL;
-		   	$lAccountsXML.=$cTAB.$cTAB.'<Signature>'.htmlspecialchars($row->mysignature).'</Signature>'.PHP_EOL;
-		   	$lAccountsXML.=$cTAB.$cTAB.'<Type>'.htmlspecialchars($lAccountType).'</Type>'.PHP_EOL;
-		   	$lAccountsXML.=$cTAB.'</Employee>'.PHP_EOL;
+			$lAccountType = $row->is_admin == 'TRUE' ? "Admin" : "User";
+			
+			// XML Generation
+			$lAccountsXML .= $cTAB.'<Account ID="'.$lCounter.'">'.PHP_EOL;
+			$lAccountsXML .= $cTAB.$cTAB.'<CID>'.htmlspecialchars($row->cid).'</CID>'.PHP_EOL;
+			$lAccountsXML .= $cTAB.$cTAB.'<UserName>'.htmlspecialchars($row->username).'</UserName>'.PHP_EOL;
+			$lAccountsXML .= $cTAB.$cTAB.'<Password>'.htmlspecialchars($row->password).'</Password>'.PHP_EOL;
+			$lAccountsXML .= $cTAB.$cTAB.'<Signature>'.htmlspecialchars($row->mysignature).'</Signature>'.PHP_EOL;
+			$lAccountsXML .= $cTAB.$cTAB.'<Type>'.htmlspecialchars($lAccountType).'</Type>'.PHP_EOL;
+			$lAccountsXML .= $cTAB.$cTAB.'<FirstName>'.htmlspecialchars($row->firstname).'</FirstName>'.PHP_EOL;
+			$lAccountsXML .= $cTAB.$cTAB.'<LastName>'.htmlspecialchars($row->lastname).'</LastName>'.PHP_EOL;
+			$lAccountsXML .= $cTAB.$cTAB.'<ClientID>'.htmlspecialchars($row->client_id).'</ClientID>'.PHP_EOL;
+			$lAccountsXML .= $cTAB.$cTAB.'<ClientSecret>'.htmlspecialchars($row->client_secret).'</ClientSecret>'.PHP_EOL;
+			$lAccountsXML .= $cTAB.'</Account>'.PHP_EOL;
+		
+			// CSV Generation
+			$lAccountsText .= $row->cid.","
+						   . $row->username.","
+						   . $row->password.","
+						   . $row->mysignature.","
+						   . $lAccountType.","
+						   . $row->firstname.","
+						   . $row->lastname.","
+						   . $row->client_id.","
+						   . $row->client_secret.PHP_EOL;
+		
+			$lCounter += 1;
+		}
+		
+		$lAccountsXML .= "</Accounts>".PHP_EOL;
+		
+		try {
+			// Ensure the directories exist and are writable
+			if (!is_dir(pathinfo($lAccountXMLFilePath, PATHINFO_DIRNAME))) {
+				echo format("Oh no. Trying to create an XML version of the accounts file did not work out. The directory " . $lAccountXMLFilePath . " does not exist.","F");
+			}
+			if (!is_dir(pathinfo($lPasswordFilePath, PATHINFO_DIRNAME))) {
+				echo format("Oh no. Trying to create a text version of the accounts file did not work out. The directory " . $lPasswordFilePath . " does not exist.","F");
+			}
+			if (!is_writable(pathinfo($lAccountXMLFilePath, PATHINFO_DIRNAME))) {
+				echo format("Oh no. Trying to create an XML version of the accounts file did not work out. The directory " . $lAccountXMLFilePath . " is not writable.","F");
+			}
+			if (!is_writable(pathinfo($lPasswordFilePath, PATHINFO_DIRNAME))) {
+				echo format("Oh no. Trying to create a text version of the accounts file did not work out. The directory " . $lPasswordFilePath . " is not writable.","F");
+			}
 
-		   	$lAccountsText.=$lCounter.",".$row->username.",".$row->password.",".$row->mysignature.",".$lAccountType.PHP_EOL;
-		   	$lCounter+=1;
-		}// end while
-
-		$lAccountsXML.="</Employees>".PHP_EOL;
-
-		try{
-			/* Ubuntu 12.04LTS PHP cannot parse short syntax of
-			 * is_writable(pathinfo($lAccountXMLFilePath)['dirname']).
-			 * Replacing with long form version.
-			 */
-			if (is_writable(pathinfo($lAccountXMLFilePath, PATHINFO_DIRNAME))) {
-				file_put_contents($lAccountXMLFilePath,$lAccountsXML);
-				echo format("Wrote accounts to ".$lAccountXMLFilePath,"S");
-			}else{
-				throw new Exception("Oh snap. Trying to create an XML version of the accounts file did not work out.");
-			}//end if
-		}catch(Exception $e){
-			echo format("Could not write accounts XML to ".$lAccountXMLFilePath." - ".$e->getMessage(),"W");
-			echo format("Using default version of accounts.xml","W");
-		};// end try
-
-		try{
-			/* Ubuntu 12.04LTS PHP cannot parse short syntax of
-			 * is_writable(pathinfo($lAccountXMLFilePath)['dirname']).
-			 * Replacing with long form version.
-			 */
-			if (is_writable(pathinfo($lPasswordFilePath, PATHINFO_DIRNAME))) {
-				file_put_contents($lPasswordFilePath,$lAccountsText);
-				echo format("Wrote accounts to ".$lPasswordFilePath,"S");
-			}else{
-				throw new Exception("Oh snap. Trying to create an text version of the accounts file did not work out.");
-			}//end if
-		}catch(Exception $e){
-			echo format("Could not write accounts XML to ".$lPasswordFilePath." - ".$e->getMessage(),"W");
-			echo format("Using default version of accounts.txt","W");
-		};// end try
-
+			// XML File Writing
+			try {
+				if (is_writable(pathinfo($lAccountXMLFilePath, PATHINFO_DIRNAME))) {
+					file_put_contents($lAccountXMLFilePath, $lAccountsXML);
+					echo format("Wrote accounts to " . $lAccountXMLFilePath, "S");
+				}else{
+					echo format("Could not write accounts XML to " . $lAccountXMLFilePath . " - Directory not writable", "W");
+					echo format("Using default version of accounts.xml", "W");
+				}
+			} catch (Exception $e) {
+				echo format("Could not write accounts XML to " . $lAccountXMLFilePath . " - " . $e->getMessage(), "W");
+				echo format("Using default version of accounts.xml", "W");
+			}
+		
+			// Text File Writing
+			try {
+				if (is_writable(pathinfo($lPasswordFilePath, PATHINFO_DIRNAME))) {
+					file_put_contents($lPasswordFilePath, $lAccountsText);
+					echo format("Wrote accounts to " . $lPasswordFilePath, "S");
+				}else{
+					echo format("Could not write accounts text to " . $lPasswordFilePath . " - Directory not writable", "W");
+					echo format("Using default version of accounts.txt", "W");
+				}
+			} catch (Exception $e) {
+				echo format("Could not write accounts text to " . $lPasswordFilePath . " - " . $e->getMessage(), "W");
+				echo format("Using default version of accounts.txt", "W");
+			}
+		
+		} catch (Exception $e) {
+			$lErrorDetected = true;
+			echo $CustomErrorHandler->FormatError($e, $lQueryString);
+		}
+		
 	} else {
-		$lErrorDetected = TRUE;
+		$lErrorDetected = true;
 		echo format("Warning: No records found when trying to build XML and text version of accounts table ".$lQueryResult,"W");
 	}// end if ($lResultsFound)
 
 	$MySQLHandler->closeDatabaseConnection();
 
 } catch (Exception $e) {
-	$lErrorDetected = TRUE;
+	$lErrorDetected = true;
 	echo $CustomErrorHandler->FormatError($e, $lQueryString);
 }// end try
 
-// if no errors were detected, send the user back to the page that requested the database be reset.
-//We use JS instead of HTTP Location header so that HTML5 clearing JS above will run
-if(!$lErrorDetected){
-	/*If the user came from the database error page but we do not have
-	 * database errors anymore, send them to the home page.
-	 */
-	$lHTTPReferer = "";
-	if (isset($_SERVER["HTTP_REFERER"])) {
-		$lHTTPReferer = $_SERVER["HTTP_REFERER"];
-	}//end if
+if (!$lErrorDetected) {
+    // Check for HTTP referer (only if available)
+    $lHTTPReferer = $_SERVER["HTTP_REFERER"] ?? "";
 
-	$lReferredFromDBOfflinePage = preg_match("/database-offline.php/", $lHTTPReferer);
-	$lReferredFromPageWithURLParameters = preg_match("/\?/", $lHTTPReferer);
+    // Determine if the referer matches certain conditions
+    $lReferredFromOfflinePage = strpos($lHTTPReferer, "database-offline.php") !== false;
 
-	if ($lReferredFromDBOfflinePage || $lReferredFromPageWithURLParameters){
-		$lPopUpNotificationCode = "&popUpNotificationCode=SUD1";
-	}else{
-		$lPopUpNotificationCode = "?popUpNotificationCode=SUD1";
-	}// end if any parameters in referrer
+    // Redirect to home page if offline page triggered the reset
+    if ($lReferredFromOfflinePage) {
+        $lRedirectLocation = "index.php?page=home.php&popUpNotificationCode=SUD1";
+    } else {
+        $lRedirectLocation = "index.php?page=home.php";
+    }
 
-	$lRedirectLocation = str_ireplace("database-offline.php", "index.php?page=home.php", $lHTTPReferer).$lPopUpNotificationCode;
-	echo "<script>if(confirm(\"No PHP or MySQL errors were detected when resetting the database.\\n\\nClick OK to proceed to ".$lRedirectLocation." or Cancel to stay on this page.\")){document.location=\"".$lRedirectLocation."\"};</script>";
-}// end if
+    // JavaScript-based redirect to ensure the session is cleared before the redirect
+    echo "<script>
+        if (confirm('Database reset successful. Click OK to continue to the home page. Click Cancel to stay on this page.')) {
+            window.location.href = '$lRedirectLocation';
+        }
+    </script>";
+}
 
 $CustomErrorHandler = null;
 ?>

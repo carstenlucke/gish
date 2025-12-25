@@ -6,11 +6,12 @@
 	 */
 
 	switch ($_SESSION["security-level"]){
+		default: // This code is insecure
    		case "0": // This code is insecure
    		case "1": // This code is insecure
-   			// DO NOTHING: This is insecure		
-			$lEncodeOutput = FALSE;
-			$lLimitOutput= FALSE;
+   			// DO NOTHING: This is insecure
+			$lEncodeOutput = false;
+			$lLimitOutput= false;
 		break;
 	    		
    		case "2":
@@ -31,7 +32,7 @@
   			 */
    			// encode the output following OWASP standards
    			// this will be HTML encoding because we are outputting data into HTML
-			$lEncodeOutput = TRUE;
+			$lEncodeOutput = true;
 			
 			/*
 			 *  If DOS defenses are enabled, we limit output. An attacker can easily cause 
@@ -42,9 +43,9 @@
 			 *  Amplifications attacks are also done by sending single IP packets to networks 
 			 *  which will broadcast the packet thus ampliphying the packet many times.
 			 */
-			$lLimitOutput= TRUE;
+			$lLimitOutput= true;
    		break;
-   	}// end switch		
+   	}// end switch
 
    	if(isset($_GET["deleteLogs"])){
 		try{
@@ -66,11 +67,11 @@
 
 <div class="page-title">Captured Data</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <!-- BEGIN HTML OUTPUT  -->
-<table style="margin-left:auto; margin-right:auto; width: 600px;">
+<table>
 	<tr>
 		<td class="form-header">Captured Data Page</td>
 	</tr>
@@ -86,17 +87,17 @@
 	</tr>
 </table>
 <span title="Click to refresh captured data log" onclick="document.location.reload(true);" style="cursor: pointer;margin-right:35px;font-weight: bold;">
-	<img width="32px" height="32px" src="./images/refresh-button-48px-by-48px.png" style="vertical-align:middle;" />
+	<img width="32px" height="32px" src="./images/refresh-button-48px-by-48px.png" style="vertical-align:middle;" alt="Refresh" />
 	Refresh
 </span>
 <span 	title="Click to delete captured data log. This deletes the database table only. The text file is not affected." 
 		onclick="DeleteCapturedData();" 
 		style="margin-right:35px;cursor: pointer;font-weight: bold;">
-	<img width="32px" height="32px" src="./images/delete-icon-48-48.png" style="vertical-align:middle;" />
+	<img width="32px" height="32px" src="./images/delete-icon-48-48.png" style="vertical-align:middle;" alt="Delete" />
 	Delete Capured Data
 </span>
 <span title="Click to visit capture data page. Your data will be captured." onclick="document.location='./index.php?page=capture-data.php';" style="cursor: pointer;font-weight: bold;">
-	<img width="32px" height="32px" src="./images/spider-in-web-48-48.png" style="vertical-align:middle;" />
+	<img width="32px" height="32px" src="./images/spider-in-web-48-48.png" style="vertical-align:middle;" alt="Capture Data" />
 	Capture Data
 </span>
 <br/>
@@ -113,7 +114,7 @@
 			    <td>Client IP Address</td>
 			    <td>Client Port</td>
     			<td>User Agent</td>
-    			<td>Referrer</td>			    
+    			<td>Referrer</td>
 			    <td>Data</td>
 			    <td>Date/Time</td>
 		    </tr>';
@@ -131,7 +132,7 @@
 				$lClientIPAddress = $row->ip_address;
 				$lClientPort = $row->port;
 				$lClientUserAgentString = $row->user_agent_string;
-				$lClientReferrer = $row->referrer;				
+				$lClientReferrer = $row->referrer;
 				$lData = $row->data;
 				$lCaptureDate = $row->capture_date;
 			}else{

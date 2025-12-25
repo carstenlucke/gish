@@ -38,8 +38,7 @@ echo "+ + + Installation der Datenbank für mutillidae + + +"
 sudo /etc/init.d/mariadb start
 # set default MySql root password to "kali"
 sudo mysql -uroot -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'kali'; flush privileges;"
-# create Mutillidae database
-sudo mysql -uroot -p"kali" -e "CREATE DATABASE mutillidae /*\!40100 DEFAULT CHARACTER SET utf8 */;"
+# Note: Database and tables will be created via set-up-database.php after Apache starts
 
 # php settings must be insecure
 # Find php.ini used by Apache (use latest version if multiple exist)
@@ -69,6 +68,17 @@ cd gish
 sudo mv /var/www/html /var/www/html-BACKUP
 sudo mv var_www_html /var/www/html
 sudo /etc/init.d/apache2 start
+
+# Initialize Mutillidae database with tables and data
+echo "+ + + Initialisierung der Mutillidae Datenbank + + +"
+sleep 2  # Give Apache a moment to start
+curl -s http://localhost/mutillidae/set-up-database.php > /dev/null
+if [ $? -eq 0 ]; then
+    echo "Mutillidae Datenbank erfolgreich initialisiert"
+else
+    echo "WARNUNG: Fehler bei der Initialisierung der Mutillidae Datenbank"
+    echo "Bitte manuell http://localhost/mutillidae/set-up-database.php aufrufen"
+fi
 
 # Enable mysql and apache service
 sudo systemctl enable mysql

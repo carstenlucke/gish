@@ -4,14 +4,14 @@
 
 		private $mFieldname = "";
 		private $mValue = "";
-		private $mIsCorrect = FALSE;
+		private $mIsCorrect = false;
 
 		public function __construct ($pFieldname, $pValue){
 			$this->mFieldname = $pFieldname;
 			$this->mValue = $pValue;
-			$this->mIsCorrect = FALSE;
+			$this->mIsCorrect = false;
 		}//end constructor
-		
+
 		public function getFieldname(){
 			return $this->mFieldname;
 		}//end method
@@ -23,7 +23,7 @@
 		public function setIsCorrect($pIsCorrect){
 			$this->mIsCorrect = $pIsCorrect;
 		}//end method
-		
+
 		public function getIsCorrect(){
 			return $this->mIsCorrect;
 		}//end method
@@ -31,35 +31,34 @@
 	};// end class
 
 	class ClientFields{
-	
-		private $mDLList = NULL;
+
+		private $mDLList = null;
 		private $mTargetNumber = -1;
-		private $mEncodeOutput = FALSE;
+		private $mEncodeOutput = false;
 		private $Encoder = null;
-		
-		public function __construct ($pPathToESAPI){
+
+		public function __construct (){
 			try{
 				$this->mDLList = new SplDoublyLinkedList();
 				$this->mDLList->setIteratorMode(SplDoublyLinkedList::IT_MODE_FIFO|SplDoublyLinkedList::IT_MODE_KEEP);
-				
-				//initialize OWASP ESAPI for PHP
-				require_once $pPathToESAPI . 'ESAPI.php';
-				$this->ESAPI = new ESAPI($pPathToESAPI . 'ESAPI.xml');
-				$this->Encoder = $this->ESAPI->getEncoder();
-								
+
+				//initialize encoder
+				require_once __SITE_ROOT__.'/classes/EncodingHandler.php';
+				$Encoder = new EncodingHandler();
+
 			} catch(Exception $e){
 				echo $CustomErrorHandler->FormatError($e, "ClientFields.__construct()");
 			}// end try
 		}//end constructor
-		
+
 		public function EnableOutputEncoding(){
-			$this->mEncodeOutput = TRUE;
+			$this->mEncodeOutput = true;
 		}// end try
-		
+
 		public function DisableOutputEncoding(){
-			$this->mEncodeOutput = FALSE;
+			$this->mEncodeOutput = false;
 		}// end try
-		
+
 		public function addFieldHelper(/*ClientField*/ $pClientField){
 			try{
 				$lIsCorrect=($this->mTargetNumber==$pClientField->getValue());
@@ -69,7 +68,7 @@
 				echo $CustomErrorHandler->FormatError($e, "ClientFields.addFieldHelper()");
 			}// end try
 		}//end method
-		
+
 		public function addField(/*ClientField*/ $pClientField){
 			try{
 				$this->addFieldHelper($pClientField);
@@ -77,7 +76,7 @@
 				echo $CustomErrorHandler->FormatError($e, "ClientFields.addField()");
 			}// end try
 		}//end method
-		
+
 		public function setTargetNumber(/*Integer*/ $pTargetNumber){
 			$this->mTargetNumber = $pTargetNumber;
 		}//end method
@@ -90,12 +89,12 @@
 				$lCountOfCorrectAnswers = 0;
 				$lFieldName = "";
 				$lFieldValue = "";
-				
+
 				for ($this->mDLList->rewind(); $this->mDLList->valid(); $this->mDLList->next()) {
 
 					$lFieldName = $this->mDLList->current()->getFieldname();
 					$lFieldValue = $this->mDLList->current()->getValue();
-					
+
 					if ($this->mEncodeOutput) {
 						$lFieldName = $this->Encoder->encodeForHTML($lFieldName);
 						$lFieldValue = $this->Encoder->encodeForHTML($lFieldValue);
@@ -108,60 +107,55 @@
 						$lImage = 'red-x-24-24.png';
 					}// end if
 
-					$lHTMLDetails .= 
+					$lHTMLDetails .=
 						'<tr><td style="font-weight:bold;">'.$lFieldName.
 						'</td><td>'.$lFieldValue.
 						'</td><td style="text-align:center;"><img src="images/'.$lImage.
 						'" /></td></tr>';
 				}//end for
 
-				$lHTMLHeader = 
+				$lHTMLHeader =
 						'<tr><td>&nbsp;<td></tr><tr><td style="font-weight:bold;text-align:center;" colspan="3">You got '.
 						$lCountOfCorrectAnswers.' out of '.
 						$this->mDLList->count().' correct</td></tr><tr><td>&nbsp;<td></tr>';
-								
+
 				return $lHTMLHeader.$lHTMLDetails;
 			} catch(Exception $e){
 				echo $CustomErrorHandler->FormatError($e, "ClientFields.prettyPrintFields()");
-			}// end try		
+			}// end try
 		}//end method
 
 	};// end class
-	
+
 	try{
     	switch ($_SESSION["security-level"]){
+			default:
     		case "0": // This code is insecure.
-				$lEnableJavaScriptValidation = TRUE;
-				$lEnableHTMLControls = TRUE;
-				$lProtectAgainstMethodSwitching = FALSE;
-				$lEncodeOutput = FALSE;
-    		break;
-
     		case "1": // This code is insecure.
-				$lEnableJavaScriptValidation = TRUE;
-				$lEnableHTMLControls = TRUE;
-				$lProtectAgainstMethodSwitching = FALSE;
-				$lEncodeOutput = FALSE;
+				$lEnableJavaScriptValidation = true;
+				$lEnableHTMLControls = true;
+				$lProtectAgainstMethodSwitching = false;
+				$lEncodeOutput = false;
     		break;
 
 	   		case "2":
 	   		case "3":
 	   		case "4":
     		case "5": // This code is fairly secure
-    			$lEnableJavaScriptValidation = TRUE;
-				$lEnableHTMLControls = TRUE;
-				$lProtectAgainstMethodSwitching = TRUE;
-				$lEncodeOutput = TRUE;
+    			$lEnableJavaScriptValidation = true;
+				$lEnableHTMLControls = true;
+				$lProtectAgainstMethodSwitching = true;
+				$lEncodeOutput = true;
     		break;
     	}// end switch
-   
+
 		// if we want to enforce POST method, we need to be careful to specify $_POST
 	   	if(!$lProtectAgainstMethodSwitching){
 			$lSubmitButtonClicked = isset($_REQUEST["client_side_control_challenge_php_submit_button"]);
 	   	}else{
 			$lSubmitButtonClicked = isset($_POST["client_side_control_challenge_php_submit_button"]);
 	   	}//end if !$lProtectAgainstMethodSwitching
-	   	
+
 	   	if($lSubmitButtonClicked){
 
 	   		if (isset($_SESSION['cscc-random-flag'])) {
@@ -169,7 +163,7 @@
 	   		}else{
 	   			$lCurrentRandomFlag = 0;
 	   		}//end if
-	   		
+
 			// if we want to enforce POST method, we need to be careful to specify $_POST
 		   	if(!$lProtectAgainstMethodSwitching){
 		   		$lTextbox = isset($_REQUEST["textbox"])?$_REQUEST["textbox"]:"";
@@ -209,14 +203,14 @@
 		   		$lRange = isset($_POST["range"])?$_POST["range"]:"";
 		   		$lSearch = isset($_POST["search"])?$_POST["search"]:"";
 		   		$lSubmitButton = isset($_POST["client_side_control_challenge_php_submit_button"])?$_POST["client_side_control_challenge_php_submit_button"]:"";
-		   	}//end if !$lProtectAgainstMethodSwitching	
+		   	}//end if !$lProtectAgainstMethodSwitching
 
-		   	$lFields = new ClientFields("owasp-esapi-php/src/");
+		   	$lFields = new ClientFields();
 		   	$lFields->setTargetNumber($lCurrentRandomFlag);
 		   	if ($lEncodeOutput){
 		   		$lFields->EnableOutputEncoding();
 		   	}//end if
-		   	
+
 		   	$lFields->addField(new ClientField("Textbox", $lTextbox));
 		   	$lFields->addField(new ClientField("Readonly Textbox", $lReadonlyTextbox));
 		   	$lFields->addField(new ClientField("Short Textbox", $lShortTextbox));
@@ -241,7 +235,7 @@
 	   	/*
 	   	 * Create a random value for the user to submit.
 	   	*/
-	   	
+
 	   	// if we want to enforce POST method, we need to be careful to specify $_POST
 	   	if(!$lProtectAgainstMethodSwitching){
 	   		$lResetTargetValue = isset($_REQUEST["resetTargetValue"])?$_REQUEST["resetTargetValue"]:"";
@@ -252,13 +246,13 @@
 	   	if (!isset($_SESSION['cscc-random-flag']) || $lResetTargetValue == 1) {
 	   		$_SESSION['cscc-random-flag'] = mt_rand(0, mt_getrandmax());;
 	   	}//end if
-	   	
+
 	   	$lRandomFlag = $_SESSION['cscc-random-flag'];
 
 	} catch(Exception $e){
-		$lSubmitButtonClicked = FALSE;
+		$lSubmitButtonClicked = false;
 		echo $CustomErrorHandler->FormatError($e, "Error creating client-side challenge");
-	}// end try	
+	}// end try
 ?>
 
 <script type="text/javascript">
@@ -268,13 +262,13 @@
 			echo "var lSubmitOccured = true" . PHP_EOL;
 		}else{
 			echo "var lSubmitOccured = false" . PHP_EOL;
-		}// end if		
+		}// end if
 
 		if($lEnableJavaScriptValidation){
 			echo "var lValidateInput = true" . PHP_EOL;
 		}else{
 			echo "var lValidateInput = false" . PHP_EOL;
-		}// end if		
+		}// end if
 	?>
 
 	function onSubmitOfForm(/*HTMLFormElement*/ theForm){
@@ -286,7 +280,7 @@
 				var lMessage = 'Only letters are allowed into fields which is weird considering you are supposed to enter a number';
 				var lEmailMessage = 'The email address does not look like an email address';
 				var lNumericMessage = 'The email address does not look like an email address';
-								
+
 				if (theForm.id_textbox.value.match(lAlphaValidationPattern) == null){
 					alert("Textbox: "+lMessage);return false;
 				}// end if
@@ -322,11 +316,11 @@
 				}// end if
 				if (theForm.id_range.value.match(lNumericValidationPattern) == null){
 					alert("Range: "+lNumericMessage);return false;
-				}// end if	
+				}// end if
 				if (theForm.id_search.value.match(lAlphaValidationPattern) == null){
 					alert("Search Textbox: "+lMessage);return false;
 				}// end if
-				
+
 			}// end if(lValidateInput)
 
 			return true;
@@ -349,13 +343,13 @@
 
 <div class="page-title">Client-side Control Challenge</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <div id="id-client-side-control-challenge-form-div" style="text-align:center;">
-	<form 	action="index.php?page=client-side-control-challenge.php" 
-			method="post" 
-			enctype="application/x-www-form-urlencoded" 
+	<form 	action="index.php?page=client-side-control-challenge.php"
+			method="post"
+			enctype="application/x-www-form-urlencoded"
 			onsubmit="return onSubmitOfForm(this);"
 			id="idclient-side-control-challengeForm"
 			style="margin-left:auto; margin-right:auto; width:600px;">
@@ -399,7 +393,7 @@
 				<td style="text-align: left;">
 					<input type="text" name="readonly_textbox" id="id_readonly_textbox" size="15" maxlength="15" required="required" autofocus="autofocus" readonly="readonly" value="42" />
 				</td>
-			</tr>			
+			</tr>
 			<tr>
 				<td class="label" style="text-align: left;">Short Text Box</td>
 				<td style="text-align: left;">
@@ -457,7 +451,7 @@
 						<option value="3">Buckle my shoe</option>
 					</select>
 				</td>
-			</tr>			
+			</tr>
 			<tr>
 				<td class="label" style="text-align: left;">Checkbox</td>
 				<td style="text-align: left;">
@@ -495,7 +489,7 @@
 				<td style="text-align: left;">
 					<input type="range" name="range" id="id_range" min="0" max="999" step="1" required="required" />
 				</td>
-			</tr>		
+			</tr>
 			<tr><td>&nbsp;</td></tr>
 			<tr>
 				<td colspan="2" style="text-align:center;">
@@ -508,19 +502,19 @@
 </div>
 
 <div id="id-client-side-control-challenge-output-div" style="text-align: center; display: none;">
-	<table class="results-table" id="idClientFields" style="width: 500px; text-align: left;">	
+	<table class="results-table" id="idClientFields" style="width: 500px; text-align: left;">
 		<tr class="report-header">
 		    <td>Field</td>
 		    <td>Value Submitted</td>
-		    <td>&nbsp;</td>	
+		    <td>&nbsp;</td>
 		</tr>
 		<?php echo $lFields->prettyPrintFields(); ?>
 		<tr><td>&nbsp;</td></tr>
-	</table>	
+	</table>
 </div>
 
 <script type="text/javascript">
 	if (lSubmitOccured){
-		document.getElementById("id-client-side-control-challenge-output-div").style.display="";		
-	}// end if lSubmitOccured	
+		document.getElementById("id-client-side-control-challenge-output-div").style.display="";
+	}// end if lSubmitOccured
 </script>

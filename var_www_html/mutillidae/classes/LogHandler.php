@@ -1,20 +1,25 @@
 <?php
+
+/* Determine the root of the entire project.
+ * Recall this file is in the "includes" folder so its "2 levels deep". */
+if (!defined('__SITE_ROOT__')){if (!defined('__SITE_ROOT__')){define('__SITE_ROOT__', dirname(dirname(__FILE__)));}}
+
 class LogHandler {
 	//default insecure: no output encoding.
-	protected $encodeOutput = FALSE;
-	protected $stopSQLInjection = FALSE;
+	protected $encodeOutput = false;
+	protected $stopSQLInjection = false;
 	protected $mSecurityLevel = 0;
-	protected $ESAPI = null;
-	protected $Encoder = null;
+	protected $mEncoder = null;
 	protected $mMySQLHandler = null;
 
 	private function doSetSecurityLevel($pSecurityLevel){
 		$this->mSecurityLevel = $pSecurityLevel;
 
 		switch ($this->mSecurityLevel){
+			default: // Insecure
 	   		case "0": // This code is insecure, we are not encoding output
 			case "1": // This code is insecure, we are not encoding output
-				$this->encodeOutput = FALSE;
+				$this->encodeOutput = false;
 
 				/* stopSQLInjection is set to true even in
 				 * insecure configuration because trying to log
@@ -23,7 +28,7 @@ class LogHandler {
 				 * allowed, we dont want the logger to break and stop
 				 * the SQL injection.
 				 */
-				$this->stopSQLInjection = TRUE;
+				$this->stopSQLInjection = true;
 	   		break;
 
 			case "2":
@@ -31,24 +36,23 @@ class LogHandler {
 			case "4":
 	   		case "5": // This code is fairly secure
 	  			// If we are secure, then we encode all output.
-	   			$this->encodeOutput = TRUE;
-	   			$this->stopSQLInjection = TRUE;
+	   			$this->encodeOutput = true;
+				$this->stopSQLInjection = true;
 	   		break;
 	   	}// end switch
 	}// end function
 
-	public function __construct($pPathToESAPI, $pSecurityLevel){
+	public function __construct($pSecurityLevel){
 
 		$this->doSetSecurityLevel($pSecurityLevel);
 
-		//initialize OWASP ESAPI for PHP
-		require_once $pPathToESAPI . 'ESAPI.php';
-		$this->ESAPI = new ESAPI($pPathToESAPI . 'ESAPI.xml');
-		$this->Encoder = $this->ESAPI->getEncoder();
+		//initialize encoder
+		require_once __SITE_ROOT__.'/classes/EncodingHandler.php';
+		$this->mEncoder = new EncodingHandler();
 
 		/* Initialize MySQL Connection handler */
 		require_once 'MySQLHandler.php';
-		$this->mMySQLHandler = new MySQLHandler($pPathToESAPI, $pSecurityLevel);
+		$this->mMySQLHandler = new MySQLHandler($pSecurityLevel);
 		$this->mMySQLHandler->connectToDefaultDatabase();
 
 	}// end function
@@ -73,7 +77,7 @@ class LogHandler {
 			/* Cross site scripting defense */
    			// encode the entire message following OWASP standards
    			// this is HTML encoding because we are outputting data into HTML
-		    $lUserAgent = $this->Encoder->encodeForHTML($lUserAgent);
+		    $lUserAgent = $this->mEncoder->encodeForHTML($lUserAgent);
 		}// end if
 
 		/*Here we are protecting against SQL injection and other types of

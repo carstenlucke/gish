@@ -1,6 +1,6 @@
 <?php
 
-	function PrettyPrintStringtoHex($lString) {
+	function prettyPrintStringToHex($lString) {
 		$lHexText = "";
 		for($i=0;$i<strlen($lString);$i++){
 			$lHexText .= "0X" . str_pad(dechex(ord($lString[$i])), 2, "0", STR_PAD_LEFT) . " ";
@@ -28,24 +28,25 @@
 
 	try{
     	switch ($_SESSION["security-level"]){
+			default: // Default case: This code is insecure
     		case "0": // This code is insecure.
-				$lEnableJavaScriptValidation = FALSE;
-				$lEnableBufferOverflowProtection = FALSE;
-				$lProtectAgainstMethodSwitching = FALSE;
-				$lCreateParameterAdditionVulnerability = TRUE;
-				$lLeakIVToBrowser = TRUE;
-				$lIgnoreUserInfluence = FALSE;
+				$lEnableJavaScriptValidation = false;
+				$lEnableBufferOverflowProtection = false;
+				$lProtectAgainstMethodSwitching = false;
+				$lCreateParameterAdditionVulnerability = true;
+				$lLeakIVToBrowser = true;
+				$lIgnoreUserInfluence = false;
     			$lUserID = "100";
 				$lUserGroupID = "100";
 			break;
 
     		case "1": // This code is insecure.
-				$lEnableJavaScriptValidation = TRUE;
-				$lEnableBufferOverflowProtection = FALSE;
-				$lProtectAgainstMethodSwitching = FALSE;
-				$lCreateParameterAdditionVulnerability = TRUE;
-				$lLeakIVToBrowser = TRUE;
-				$lIgnoreUserInfluence = FALSE;
+				$lEnableJavaScriptValidation = true;
+				$lEnableBufferOverflowProtection = false;
+				$lProtectAgainstMethodSwitching = false;
+				$lCreateParameterAdditionVulnerability = true;
+				$lLeakIVToBrowser = true;
+				$lIgnoreUserInfluence = false;
     			$lUserID = "174";
 				$lUserGroupID = "235";
 			break;
@@ -54,12 +55,12 @@
 	   		case "3":
 	   		case "4":
     		case "5": // This code is fairly secure
-    			$lEnableJavaScriptValidation = TRUE;
-				$lEnableBufferOverflowProtection = TRUE;
-				$lProtectAgainstMethodSwitching = TRUE;
-				$lCreateParameterAdditionVulnerability = FALSE;
-				$lLeakIVToBrowser = FALSE;
-				$lIgnoreUserInfluence = TRUE;
+    			$lEnableJavaScriptValidation = true;
+				$lEnableBufferOverflowProtection = true;
+				$lProtectAgainstMethodSwitching = true;
+				$lCreateParameterAdditionVulnerability = false;
+				$lLeakIVToBrowser = false;
+				$lIgnoreUserInfluence = true;
     			$lUserID = "999";
 				$lUserGroupID = "999";
 			break;
@@ -126,13 +127,13 @@
 		$lUserIDValue = substr($lUnchainedPlaintext,4,3);
 		$lUserGroupIDValue = substr($lUnchainedPlaintext,7,3);
 
-		$lUserIsRoot = FALSE;
+		$lUserIsRoot = false;
 		if ($lUserIDValue == "000" && $lUserGroupIDValue == "000"){
-			$lUserIsRoot = TRUE;
+			$lUserIsRoot = true;
 		}// end if
 
 	} catch(Exception $e){
-		//$lSubmitButtonClicked = FALSE;
+		//$lSubmitButtonClicked = false;
 		echo "<div class=\"error-message\">".$lErrorMessage."</div>";
 		echo $CustomErrorHandler->FormatError($e, "Error attempting to repeat string.");
 	}// end try
@@ -140,8 +141,8 @@
 
 <div class="page-title">View User Privilege Level</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <?php
 	if ($lCreateParameterAdditionVulnerability) {
@@ -169,11 +170,11 @@
 		</tr>
 		<tr>
 			<td class="label" style="text-align: left;">User ID</td>
-			<td style="text-align: left;"><?php echo $lUserIDValue . " ( Hint: " . PrettyPrintStringtoHex($lUserIDValue) . ")"; ?></td>
+			<td style="text-align: left;"><?php echo $lUserIDValue . " ( Hint: " . prettyPrintStringToHex($lUserIDValue) . ")"; ?></td>
 		</tr>
 		<tr>
 			<td class="label" style="text-align: left;">Group ID</td>
-			<td style="text-align: left;"><?php echo $lUserGroupIDValue . " ( Hint: " . PrettyPrintStringtoHex($lUserGroupIDValue) . ")"; ?></td>
+			<td style="text-align: left;"><?php echo $lUserGroupIDValue . " ( Hint: " . prettyPrintStringToHex($lUserGroupIDValue) . ")"; ?></td>
 		</tr>
 		<tr><td></td></tr>
 		<tr><td class="label" colspan="2">Note: UID/GID "000" is root.<br />You need to make User ID and Group ID equal to<br />"000" to become root user.</td></tr>

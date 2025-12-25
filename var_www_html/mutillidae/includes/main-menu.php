@@ -1,6 +1,6 @@
 <?php
 	$lUserIDString = "";
-	if($_SESSION['loggedin'] == "True"){
+	if(isset($_SESSION["user_is_logged_in"]) && $_SESSION["user_is_logged_in"]){
 	    $lUserIDString = "&uid=" . $lUserID;
 	} //end if
 ?>
@@ -81,11 +81,12 @@
 								<li><a href="index.php?page=echo.php">Echo Message</a></li>
 								<li><a href="index.php?page=cors.php">Echo Message (CORS)</a></li>
 								<li><a href="index.php?page=content-security-policy.php">Echo Message (CSP)</a></li>
-								<li><a href="index.php?page=document-viewer.php&PathToDocument=documentation/how-to-access-Mutillidae-over-Virtual-Box-network.php">Document Viewer</a></li>
+								<li><a href="index.php?page=document-viewer.php&PathToDocument=robots.txt">Document Viewer</a></li>
 								<li><a href="index.php?page=capture-data.php">Capture Data Page</a></li>
 								<li><a href="index.php?page=login.php">Login</a></li>
 								<li><a href="index.php?page=register.php">Register User</a></li>
 								<li><a href="index.php?page=source-viewer.php">Source Viewer</a></li>
+								<li><a href="index.php?page=test-connectivity.php">Test Connectivity to Server</a></li>
 								<li><a href="index.php?page=text-file-viewer.php">Text File Viewer</a></li>
 							</ul>
 						</li>
@@ -108,16 +109,17 @@
 							<a href="">Command Injection</a>
 							<ul>
 								<li><a href="index.php?page=dns-lookup.php">DNS Lookup</a></li>
-								<li><a href="./webservices/soap/ws-lookup-dns-record.php">DNS Lookup (SOAP Web Service)</a></li>
+								<li><a href="./webservices/soap/ws-dns-lookup.php">DNS Lookup (SOAP Web Service)</a></li>
 								<li><a href="index.php?page=echo.php">Echo Message</a></li>
 								<li><a href="index.php?page=cors.php">Echo Message (CORS)</a></li>
 								<li><a href="index.php?page=content-security-policy.php">Echo Message (CSP)</a></li>
+								<li><a href="index.php?page=test-connectivity.php">Test Connectivity to Server</a></li>
 							</ul>
 						</li>
 						<li>
 							<a href="">Frame Source Injection</a>
 							<ul>
-								<li><a href="index.php?page=document-viewer.php&PathToDocument=documentation/how-to-access-Mutillidae-over-Virtual-Box-network.php">Document Viewer</a></li>
+							<li><a href="index.php?page=document-viewer.php&PathToDocument=robots.txt">Document Viewer</a></li>
 								<li><a href="index.php?page=styling-frame.php&page-to-frame=styling.php%3Fpage-title%3DStyling+with+Mutillidae">Styling with Mutilidae</a></li>
 							</ul>
 						</li>
@@ -130,6 +132,7 @@
 								<li><a href="index.php?page=echo.php">Echo Message</a></li>
 								<li><a href="index.php?page=cors.php">Echo Message (CORS)</a></li>
 								<li><a href="index.php?page=content-security-policy.php">Echo Message (CSP)</a></li>
+								<li><a href="index.php?page=test-connectivity.php">Test Connectivity to Server</a></li>
 								<li><a href="index.php?page=pen-test-tool-lookup.php">Pen Test Tool Lookup</a></li>
 								<li><a href="index.php?page=text-file-viewer.php">Text File Viewer</a></li>
 								<li><a href="index.php?page=user-info.php">User Info (SQL)</a></li>
@@ -138,7 +141,7 @@
 								<li><a href="index.php?page=html5-storage.php">HTML5 Web Storage</a></li>
 								<li><a href="index.php?page=capture-data.php">Capture Data Page</a></li>
 								<li><a href="index.php?page=captured-data.php">View Captured Data</a></li>
-								<li><a href="index.php?page=document-viewer.php&PathToDocument=documentation/how-to-access-Mutillidae-over-Virtual-Box-network.php">Document Viewer</a></li>
+								<li><a href="index.php?page=document-viewer.php&PathToDocument=robots.txt">Document Viewer</a></li>
 								<li><a href="index.php?page=arbitrary-file-inclusion.php">Arbitrary File Inclusion</a></li>
 								<li><a href="index.php?page=user-poll.php">Poll Question</a></li>
 								<li><a href="index.php?page=register.php">Register User</a></li>
@@ -174,7 +177,7 @@
 							<a href="">HTTP Parameter Pollution</a>
 							<ul>
 								<li><a href="index.php?page=user-poll.php">Poll Question</a></li>
-								<li><a href="index.php?page=document-viewer.php&PathToDocument=documentation/how-to-access-Mutillidae-over-Virtual-Box-network.php">Document Viewer</a></li>
+								<li><a href="index.php?page=document-viewer.php&PathToDocument=robots.txt">Document Viewer</a></li>
 							</ul>
 						</li>
 						<li>
@@ -325,14 +328,35 @@
 					<a href="">A5 - Broken Access Control</a>
 					<ul>
 						<li>
-							<a href="">Insecure Direct Object References</a>
+							<a href="">Insecure Direct Object References (IDOR)</a>
 							<ul>
 								<li><a href="index.php?page=edit-account-profile.php<?php echo $lUserIDString; ?>">Via Account Hijacking</a></li>
-								<li><a href="index.php?page=arbitrary-file-inclusion.php">Local File Inclusion</a></li>
-								<li><a href="index.php?page=arbitrary-file-inclusion.php">Remote File Inclusion</a></li>
-								<li><a href="index.php?page=text-file-viewer.php">Text File Viewer</a></li>
 								<li><a href="index.php?page=source-viewer.php">Source Viewer</a></li>
-								<li><a href="index.php?page=credits.php">Credits</a></li>
+								<li><a href="index.php?page=text-file-viewer.php">Text File Viewer</a></li>
+								<li>
+									<a href="">Local File Inclusiion (LFI)</a>
+										<ul>
+											<li><a href="index.php?page=arbitrary-file-inclusion.php">Local File Inclusion (LFI)</a></li>
+										</ul>
+								</li>
+								<li>
+									<a href="">Remote File Inclusiion (RFI)</a>
+										<ul>
+											<li><a href="index.php?page=arbitrary-file-inclusion.php">Remote File Inclusion (RFI)</a></li>
+										</ul>
+								</li>
+								<li>
+									<a href="">Open Redirect</a>
+										<ul>
+											<li><a href="index.php?page=credits.php">Credits</a></li>
+										</ul>
+								</li>
+								<li>
+									<a href="">Server-side Request Forgery (SSRF)</a>
+										<ul>
+											<li><a href="index.php?page=test-connectivity.php">Test Connectivity to Server</a></li>
+										</ul>
+								</li>
 							</ul>
 						</li>
 						<li>
@@ -379,6 +403,7 @@
 								<li><a href="index.php?page=echo.php">Echo Message</a></li>
 								<li><a href="index.php?page=cors.php">Echo Message (CORS)</a></li>
 								<li><a href="index.php?page=content-security-policy.php">Echo Message (CSP)</a></li>
+								<li><a href="index.php?page=test-connectivity.php">Test Connectivity to Server</a></li>
 							</ul>
 						</li>
 
@@ -408,13 +433,14 @@
 								<li><a href="index.php?page=echo.php">Echo Message</a></li>
 								<li><a href="index.php?page=cors.php">Echo Message (CORS)</a></li>
 								<li><a href="index.php?page=content-security-policy.php">Echo Message (CSP)</a></li>
+								<li><a href="index.php?page=test-connectivity.php">Test Connectivity to Server</a></li>
 								<li><a href="index.php?page=pen-test-tool-lookup.php">Pen Test Tool Lookup</a></li>
 								<li><a href="index.php?page=text-file-viewer.php">Text File Viewer</a></li>
 								<li><a href="index.php?page=user-info.php">User Info (SQL)</a></li>
 								<li><a href="index.php?page=set-background-color.php">Set Background Color</a></li>
 								<li><a href="index.php?page=html5-storage.php">HTML5 Web Storage</a></li>
 								<li><a href="index.php?page=capture-data.php">Capture Data Page</a></li>
-								<li><a href="index.php?page=document-viewer.php&PathToDocument=documentation/how-to-access-Mutillidae-over-Virtual-Box-network.php">Document Viewer</a></li>
+								<li><a href="index.php?page=document-viewer.php&PathToDocument=robots.txt">Document Viewer</a></li>
 								<li><a href="index.php?page=arbitrary-file-inclusion.php">Arbitrary File Inclusion</a></li>
 								<li><a href="index.php?page=xml-validator.php">XML Validator</a></li>
 								<li><a href="index.php?page=user-info-xpath.php">User Info (XPath)</a></li>
@@ -463,12 +489,13 @@
 								<li><a href="index.php?page=echo.php">Echo Message</a></li>
 								<li><a href="index.php?page=cors.php">Echo Message (CORS)</a></li>
 								<li><a href="index.php?page=content-security-policy.php">Echo Message (CSP)</a></li>
+								<li><a href="index.php?page=test-connectivity.php">Test Connectivity to Server</a></li>
 								<li><a href="index.php?page=user-info.php">User Info (SQL)</a></li>
 								<li><a href="index.php?page=user-info-xpath.php">User Info (XPath)</a></li>
 								<li><a href="index.php">Missing HTTPOnly Attribute</a></li>
 								<li><a href="index.php?page=set-background-color.php">Set Background Color</a></li>
 								<li><a href="index.php?page=pen-test-tool-lookup.php">Pen Test Tool Lookup</a></li>
-								<li><a href="index.php?page=document-viewer.php&PathToDocument=documentation/how-to-access-Mutillidae-over-Virtual-Box-network.php">Document Viewer</a></li>
+								<li><a href="index.php?page=document-viewer.php&PathToDocument=robots.txt">Document Viewer</a></li>
 							</ul>
 						</li>
 						<li>
@@ -483,7 +510,7 @@
 						<li>
 							<a href="">Via HTTP Attribute</a>
 							<ul>
-								<li><a href="index.php?page=document-viewer.php&PathToDocument=documentation/how-to-access-Mutillidae-over-Virtual-Box-network.php">Document Viewer</a></li>
+								<li><a href="index.php?page=document-viewer.php&PathToDocument=robots.txt">Document Viewer</a></li>
 							</ul>
 						</li>
 						<li>
@@ -538,13 +565,14 @@
 								<li><a href="index.php?page=echo.php">Echo Message</a></li>
 								<li><a href="index.php?page=cors.php">Echo Message (CORS)</a></li>
 								<li><a href="index.php?page=content-security-policy.php">Echo Message (CSP)</a></li>
+								<li><a href="index.php?page=test-connectivity.php">Test Connectivity to Server</a></li>
 								<li><a href="index.php?page=pen-test-tool-lookup.php">Pen Test Tool Lookup</a></li>
 								<li><a href="index.php?page=text-file-viewer.php">Text File Viewer</a></li>
 								<li><a href="index.php?page=user-info.php">User Info (SQL)</a></li>
 								<li><a href="index.php?page=set-background-color.php">Set Background Color</a></li>
 								<li><a href="index.php?page=html5-storage.php">HTML5 Web Storage</a></li>
 								<li><a href="index.php?page=capture-data.php">Capture Data Page</a></li>
-								<li><a href="index.php?page=document-viewer.php&PathToDocument=documentation/how-to-access-Mutillidae-over-Virtual-Box-network.php">Document Viewer</a></li>
+								<li><a href="index.php?page=document-viewer.php&PathToDocument=robots.txt">Document Viewer</a></li>
 								<li><a href="index.php?page=arbitrary-file-inclusion.php">Arbitrary File Inclusion</a></li>
 								<li><a href="index.php?page=xml-validator.php">XML Validator</a></li>
 								<li><a href="index.php?page=user-info-xpath.php">User Info (XPath)</a></li>
@@ -681,47 +709,79 @@
 			<a href="">Web Services</a>
 			<ul>
 				<li>
-					<a href="">SOAP</a>
+					<a href="./webservices/rest/docs/rest-services.html">REST</a>
 					<ul>
 						<li>
-							<a href="">Test Page</a>
-							<ul>
-								<li><a href="./webservices/soap/ws-hello-world.php">Hello World</a></li>
-							</ul>
+							<a href="./webservices/rest/docs/rest-services.html">
+								Documentation
+							</a>
+						</li>
+						<li>
+							<a href="./webservices/rest/ws-login.php">
+								Login
+							</a>
+						</li>
+						<li>
+							<a href="./webservices/rest/ws-test-connectivity.php">
+								Test Connectivity
+							</a>
 						</li>
 						<li>
 							<a href="">Command Injection</a>
 							<ul>
-								<li><a href="./webservices/soap/ws-lookup-dns-record.php">DNS Lookup</a></li>
+								<li><a href="./webservices/rest/ws-dns-lookup.php">DNS Lookup</a></li>
 							</ul>
 						</li>
 						<li>
 							<a href="">SQL Injection</a>
 							<ul>
-								<li><a href="./webservices/soap/ws-user-account.php">Lookup User</a></li>
+								<li><a href="./webservices/rest/ws-user-account.php">User Account Management</a></li>
 							</ul>
 						</li>
 						<li>
 							<a href="">Username Enumeration</a>
 							<ul>
-								<li><a href="./webservices/soap/ws-user-account.php">Lookup User</a></li>
+								<li><a href="./webservices/rest/ws-user-account.php">User Account Management</a></li>
 							</ul>
 						</li>
 					</ul>
 				</li>
 				<li>
-					<a href="">REST</a>
+					<a href="./webservices/soap/docs/soap-services.html">SOAP</a>
 					<ul>
+						<li>
+							<a href="./webservices/soap/docs/soap-services.html">
+								Documentation
+							</a>
+						</li>
+						<li>
+							<a href="./webservices/soap/ws-login.php">
+								Login
+							</a>
+						</li>
+						<li>
+							<a href="">Test Pages</a>
+							<ul>
+								<li><a href="./webservices/soap/ws-test-connectivity.php">Test Connectivity</a></li>
+							</ul>
+						</li>
+						<li>
+							<a href="">Command Injection</a>
+							<ul>
+								<li><a href="./webservices/soap/ws-dns-lookup.php">DNS Lookup</a></li>
+								<li><a href="./webservices/soap/ws-echo.php">Echo</a></li>
+							</ul>
+						</li>
 						<li>
 							<a href="">SQL Injection</a>
 							<ul>
-								<li><a href="./webservices/rest/ws-user-account.php">User Account Management</a></li>
+								<li><a href="./webservices/soap/ws-user-account.php">Lookup User</a></li>
 							</ul>
 						</li>
 						<li>
 							<a href="">Username Enumeration</a>
 							<ul>
-								<li><a href="./webservices/rest/ws-user-account.php">User Account Management</a></li>
+								<li><a href="./webservices/soap/ws-user-account.php">Lookup User</a></li>
 							</ul>
 						</li>
 					</ul>
@@ -782,6 +842,7 @@
 						<li><a href="index.php?page=cors.php">Echo Message (CORS)</a></li>
 						<li><a href="index.php?page=content-security-policy.php">Echo Message (CSP)</a></li>
 						<li><a href="index.php?page=repeater.php">Repeater</a></li>
+						<li><a href="index.php?page=test-connectivity.php">Test Connectivity to Server</a></li>
 					</ul>
 				</li>
 				<li>
@@ -847,7 +908,7 @@
 					<ul>
 						<li><a href="index.php?page=labs/lab-18.php">Lab 18 - Edit Another User's Profile</a></li>
 						<li><a href="index.php?page=labs/lab-19.php">Lab 19 - Extracting User Accounts with IDOR</a></li>
-						<li><a href="index.php?page=labs/lab-20.php">Lab 20 - Extracting User Accounts with Local File Inclusion</a></li>
+						<li><a href="index.php?page=labs/lab-20.php">Lab 20 - Extracting User Accounts with Local File Inclusion (LFI)</a></li>
 						<li><a href="index.php?page=labs/lab-21.php">Lab 21 - Web Shell with Local File Inclusion (LFI)</a></li>
 						<li><a href="index.php?page=labs/lab-22.php">Lab 22 - Web Shell with Remote File Inclusion (RFI)</a></li>
 					</ul>

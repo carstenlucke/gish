@@ -1,7 +1,7 @@
 
 <?php
-	/* Known Vulnerabilities: 
-		Cross Site Scripting, 
+	/* Known Vulnerabilities:
+		Cross Site Scripting,
 		Cross Site Request Forgery,
 		Application Exception Output,
 		HTML injection,
@@ -9,11 +9,14 @@
 		SQL Injection
 	*/
 
-	require_once (__ROOT__.'/classes/CSRFTokenHandler.php');
-	$lCSRFTokenHandler = new CSRFTokenHandler("owasp-esapi-php/src/", $_SESSION["security-level"], "register-user");
+	class UserNotLoggedInException extends Exception {}
 
-	if (!isSet($logged_in_user)) {
-		throw new Exception("$logged_in_user is not set. Page add-to-your-blog.php requires this variable.");
+	require_once __SITE_ROOT__.'/classes/CSRFTokenHandler.php';
+	
+	$lCSRFTokenHandler = new CSRFTokenHandler($_SESSION["security-level"], "register-user");
+		
+	if (!isset($logged_in_user)) {
+		throw new UserNotLoggedInException("$logged_in_user is not set. Page add-to-your-blog.php requires this variable.");
 	}// end if
 	
 	function isParameterPollutionDetected(/*String*/ $pQueryString){
@@ -35,29 +38,29 @@
 			$lCountUnique = count(array_unique($lKeys));
 			$lCountTotal = count($lKeys);
 				
-			return ($lCountUnique < $lCountTotal);
+			return $lCountUnique < $lCountTotal;
 
 		} catch (Exception $e) {
-				return FALSE;
+				return false;
 		}//end catch
 				
 	}//end function isParameterPollutionDetected()
 	
 	switch ($_SESSION["security-level"]){
+		default: // Default case: This code is insecure	
    		case "0": // This code is insecure
-   			$lEnableHTMLControls = FALSE;
-   			$lEncodeOutput = FALSE;
-   			$lProtectAgainstMethodTampering = FALSE;
-   			$lHTTPParameterPollutionDetected = FALSE;
+   			$lEnableHTMLControls = false;
+   			$lEncodeOutput = false;
+   			$lProtectAgainstMethodTampering = false;
+   			$lHTTPParameterPollutionDetected = false;
    			$lLoggedInUser = $logged_in_user;
    		break;
    			   			
    		case "1": // This code is insecure
-   			// DO NOTHING: This is insecure		
-			$lEnableHTMLControls = TRUE;
-   			$lEncodeOutput = FALSE;
-			$lProtectAgainstMethodTampering = FALSE;
-			$lHTTPParameterPollutionDetected = FALSE;
+			$lEnableHTMLControls = true;
+   			$lEncodeOutput = false;
+			$lProtectAgainstMethodTampering = false;
+			$lHTTPParameterPollutionDetected = false;
 			$lLoggedInUser = $logged_in_user;
 		break;
 	    		
@@ -65,13 +68,13 @@
 		case "3":
 		case "4":
 		case "5": // This code is fairly secure
-			$lEnableHTMLControls = TRUE;
-			$lEncodeOutput = TRUE;
-			$lProtectAgainstMethodTampering = TRUE;
+			$lEnableHTMLControls = true;
+			$lEncodeOutput = true;
+			$lProtectAgainstMethodTampering = true;
 			$lHTTPParameterPollutionDetected = isParameterPollutionDetected($_SERVER['QUERY_STRING']);
 			$lLoggedInUser = $MySQLHandler->escapeDangerousCharacters($logged_in_user);
    		break;
-   	}// end switch		
+   	}// end switch
 
    	if ($lEnableHTMLControls) {
    		$lHTMLControlAttributes='required="required"';
@@ -87,10 +90,10 @@
 
    	// determine if user clicked the submit buttton
    	if(!$lProtectAgainstMethodTampering){
-   		$lFormSubmitted = isSet($_REQUEST["user-poll-php-submit-button"]);
+		$lFormSubmitted = isset($_REQUEST["user-poll-php-submit-button"]);
    	}else{
-   		$lFormSubmitted = isSet($_GET["user-poll-php-submit-button"]);
-   	}//end if   
+		$lFormSubmitted = isset($_GET["user-poll-php-submit-button"]);
+   	}//end if
 
    	// if user clicked submit button, process input parameters
    	if($lFormSubmitted){
@@ -107,7 +110,7 @@
 		   	}//end if
 
 		   	if (!$lCSRFTokenHandler->validateCSRFToken($lPostedCSRFToken)){
-		   		throw (new Exception("Security Violation: Cross Site Request Forgery attempt detected.", 500));
+				throw new Exception("Security Violation: Cross Site Request Forgery attempt detected.", 500);
 		   	}// end if
 
 			// if parameter pollution is not detected, print user choice 
@@ -139,8 +142,8 @@
 
 <div class="page-title">User Poll</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <fieldset>
 	<legend>User Poll</legend>

@@ -1,9 +1,9 @@
 <div class="page-title">Client-side Comments</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
-<table style="margin-left:auto; margin-right:auto; width: 600px;">
+<table>
 	<tr>
 		<td class="form-header">Client-side Comments</td>
 	</tr>

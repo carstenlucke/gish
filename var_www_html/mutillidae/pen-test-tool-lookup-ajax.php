@@ -1,26 +1,27 @@
 <?php
-	try {	    	
+	try {
     	switch ($_SESSION["security-level"]){
+			default: // This code is insecure.
     		case "0": // This code is insecure.
-    			$lUseJavaScriptValidation = FALSE;
-    			$lUseServerSideValidation = FALSE;
-   				$lEncodeOutput = FALSE;
-   				$lUseSafeJSONParser = FALSE;
+    			$lUseJavaScriptValidation = false;
+    			$lUseServerSideValidation = false;
+   				$lEncodeOutput = false;
+   				$lUseSafeJSONParser = false;
 			break;
 
     		case "1": // This code is insecure.
-    			$lUseJavaScriptValidation = TRUE;
-    			$lUseServerSideValidation = FALSE;
-				$lEncodeOutput = FALSE;
-				$lUseSafeJSONParser = FALSE;
+    			$lUseJavaScriptValidation = true;
+    			$lUseServerSideValidation = false;
+				$lEncodeOutput = false;
+				$lUseSafeJSONParser = false;
 			break;
 
 	   		case "2":
 	   		case "3":
 	   		case "4":
     		case "5": // This code is fairly secure
-    			$lUseJavaScriptValidation = TRUE;
-    			$lUseServerSideValidation = TRUE;
+    			$lUseJavaScriptValidation = true;
+    			$lUseServerSideValidation = true;
 	  			/* 
 	  			 * NOTE: Input validation is excellent but not enough. The output must be
 	  			 * encoded per context. For example, if output is placed in HTML,
@@ -35,8 +36,8 @@
 	  			 */
 	   			// encode the output following OWASP standards
 	   			// this will be HTML encoding because we are outputting data into HTML
-				$lEncodeOutput = TRUE;
-				$lUseSafeJSONParser = TRUE;
+				$lEncodeOutput = true;
+				$lUseSafeJSONParser = true;
     		break;
     	}// end switch
 	}catch(Exception $e){
@@ -72,8 +73,8 @@
 
 <div class="page-title">Pen Test Tool Lookup (AJAX Version)</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <!-- BEGIN HTML OUTPUT  -->
 <script type="text/javascript">
@@ -107,7 +108,7 @@
 							var lPenTestToolsJSON = JSON.parse(lXMLHTTP.response);
 						}else{
 							var lPenTestToolsJSON = eval("(" + lXMLHTTP.response + ")");
-						}// end if gUseSafeJSONParser				
+						}// end if gUseSafeJSONParser
 						displayPenTestTools(lPenTestToolsJSON);
 						lErrorMessage.style.display="none";
 					}catch(e){
@@ -118,7 +119,7 @@
 			}; //end function
 			lXMLHTTP.open(lRequestMethod, lURL, lAsyncronousRequestFlag);
 			lXMLHTTP.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-			lXMLHTTP.send("ToolID=" + pToolID); 
+			lXMLHTTP.send("ToolID=" + pToolID);
 		}catch(e){
 			alert("Error trying execute AJAX call: " + e.message);
 		}//end try
@@ -150,7 +151,7 @@
 
 			var lToolIDTD = lDocRoot.createElement("td");
 			var lToolNameTD = lDocRoot.createElement("td");
-			var lPhaseTD = lDocRoot.createElement("td");			
+			var lPhaseTD = lDocRoot.createElement("td");
 			var lToolTypeTD = lDocRoot.createElement("td");
 			var lCommentTD = lDocRoot.createElement("td");
 
@@ -198,7 +199,7 @@
 </script>
 <span>
 	<a style="text-decoration: none; cursor: pointer;" href="./index.php?page=pen-test-tool-lookup.php">
-		<img style="vertical-align: middle;" src="./images/sign-post-60-75.gif" height="60px" width="75px" />
+		<img style="vertical-align: middle;" src="./images/sign-post-60-75.gif" height="60px" width="75px" alt="Sign Post" />
 		<span style="font-weight:bold;">Switch to POST Version of page</span>
 	</a>
 </span>

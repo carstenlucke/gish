@@ -11,7 +11,7 @@
 			if (ctype_alnum($pString[$i])){
 				$EncodedString.=$pString[$i];
 			}else{
-				$EncodedString.=$cBACKSLASH.strval(ord($pString[$i]));
+				$EncodedString.=$cBACKSLASH.strval(bin2hex($pString[$i]));
 			}
 		}
 		return $EncodedString;
@@ -19,34 +19,35 @@
 
 	try {
     	switch ($_SESSION["security-level"]){
+			default: // Default case: This code is insecure
     		case "0": // This code is insecure. No input validation is performed.
-				$lEnableJavaScriptValidation = FALSE;
-				$lEnableHTMLControls = FALSE;
-				$lProtectAgainstMethodTampering = FALSE;
-				$lProtectAgainstLDAPInjection=FALSE;
+				$lEnableJavaScriptValidation = false;
+				$lEnableHTMLControls = false;
+				$lProtectAgainstMethodTampering = false;
+				$lProtectAgainstLDAPInjection=false;
     		break;
 
     		case "1": // This code is insecure. No input validation is performed.
-				$lEnableJavaScriptValidation = TRUE;
-				$lEnableHTMLControls = TRUE;
-				$lProtectAgainstMethodTampering = FALSE;
-				$lProtectAgainstLDAPInjection=FALSE;
+				$lEnableJavaScriptValidation = true;
+				$lEnableHTMLControls = true;
+				$lProtectAgainstMethodTampering = false;
+				$lProtectAgainstLDAPInjection=false;
     		break;
 
 	   		case "2":
 	   		case "3":
 	   		case "4":
     		case "5": // This code is fairly secure
-    			$lProtectAgainstLDAPInjection=TRUE;
-				$lEnableHTMLControls = TRUE;
-    			$lEnableJavaScriptValidation = TRUE;
-   				$lProtectAgainstMethodTampering = TRUE;
+    			$lProtectAgainstLDAPInjection=true;
+				$lEnableHTMLControls = true;
+    			$lEnableJavaScriptValidation = true;
+   				$lProtectAgainstMethodTampering = true;
     		break;
     	}// end switch
 
-    	$lFormSubmitted = FALSE;
+    	$lFormSubmitted = false;
 		if (isset($_POST["default_room_common_name"]) || isset($_REQUEST["default_room_common_name"])) {
-			$lFormSubmitted = TRUE;
+			$lFormSubmitted = true;
 		}// end if
 
 		if ($lFormSubmitted){
@@ -71,8 +72,8 @@
 
 <div class="page-title">Conference Room Lookup</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <!-- BEGIN HTML OUTPUT  -->
 <script type="text/javascript">
@@ -121,7 +122,7 @@
 				<input 	type="hidden" id="idDefaultRoomCommonNameInput" name="default_room_common_name" value="1F104"
 						<?php
 							if ($lEnableHTMLControls) {
-								echo('minlength="1" maxlength="20" required="required"');
+								echo 'minlength="1" maxlength="20" required="required"';
 							}// end if
 						?>
 				/>
@@ -142,9 +143,9 @@
 /* Output results of shell LDAP sent to operating system */
 if ($lFormSubmitted){
 	try{
-		require_once(__SITE_ROOT__ . '/includes/ldap-config.inc');
+		require_once __SITE_ROOT__.'/includes/ldap-config.inc';
 
-		$ldapconn=ldap_connect(LDAP_HOST, LDAP_PORT);
+		$ldapconn = ldap_connect("ldap://" . LDAP_HOST . ":" . LDAP_PORT);
 		ldap_set_option($ldapconn, LDAP_OPT_PROTOCOL_VERSION, 3);
 		ldap_bind($ldapconn, LDAP_BIND_DN, LDAP_BIND_PASSWORD);
 

@@ -2,10 +2,11 @@
 
 	try{
 		switch ($_SESSION["security-level"]){
+			default: // This code is insecure
 	   		case "0": // This code is insecure
 	   		case "1": // This code is insecure
-	   			// DO NOTHING: This is insecure		
-				$lEncodeOutput = FALSE;
+	   			// DO NOTHING: This is insecure
+				$lEncodeOutput = false;
 				$luseSafeJavaScript = "false";
 			break;
 
@@ -32,12 +33,12 @@
 	  			 */
 	   			// encode the output following OWASP standards
 	   			// this will be HTML encoding because we are outputting data into HTML
-				$lEncodeOutput = TRUE;
+				$lEncodeOutput = true;
 				$luseSafeJavaScript = "true";
 	   		break;
-	   	}// end switch		
+	   	}// end switch
 	
-		require_once (__ROOT__.'/classes/ClientInformationHandler.php');
+		require_once __SITE_ROOT__.'/classes/ClientInformationHandler.php';
 		$lClientInformationHandler = new ClientInformationHandler();
 
 		if ($lEncodeOutput){
@@ -67,8 +68,8 @@
 
 <div class="page-title">Browser Information</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <table style="width:75%;" class="results-table">
 	<tr class="report-header"><td colspan="3">Info obtained by PHP</td></tr>
@@ -80,7 +81,7 @@
     <tr><th class="report-label">Remote Client Port</th><td class="report-data"><?php echo $lClientPort; ?></td></tr>
     <tr><th class="report-label">WhoIs info for client IP</th><td class="report-data"><pre><?php echo $lWhoIsInformation; ?></pre></td></tr>
 	<?php 
-	if ($lEncodeOutput){	
+	if ($lEncodeOutput){
 		foreach ($_COOKIE as $key => $value){
 	    	echo '<tr><th class="report-label">Cookie '.$Encoder->encodeForHTML($key).'</th><td class="report-data">'.$Encoder->encodeForHTML($value).'</pre></td></tr>';
 		}// end foreach
@@ -89,7 +90,7 @@
 	    	echo '<tr><th class="report-label" class="non-wrapping-label">Cookie '.$key.'</th><td class="report-data">'.$value.'</pre></td></tr>';
 		}// end foreach
 	}// end if
-	?>    
+	?>
 </table>
 <div>&nbsp;</div><div>&nbsp;</div>
 <table style="width:75%;" class="results-table">

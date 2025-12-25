@@ -1,6 +1,6 @@
 <div class="page-title">Listing of Vulnerabilities</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
 
 <table style="width: 800px;">
 	<tr>
@@ -656,7 +656,7 @@
 	</ul>
 </div>
 
-<p class="label">webservices/soap/ws-lookup-dns-record.php</p>
+<p class="label">webservices/soap/ws-dns-lookup.php</p>
 <div style="padding-left: 40px;">
 	<ul>
 		<li>SOAP Web Service: Command Injection</li>

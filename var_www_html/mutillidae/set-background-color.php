@@ -1,25 +1,26 @@
 <?php
 	try {
 		switch ($_SESSION["security-level"]){
+			default: // Default case: This code is insecure
 			case "0": // This code is insecure
-				$lEnableJavaScriptValidation = FALSE;
-				$lEnableHTMLControls = FALSE;
-				$lEncodeBackgroundColor = FALSE;
+				$lEnableJavaScriptValidation = false;
+				$lEnableHTMLControls = false;
+				$lEncodeBackgroundColor = false;
 				break;
 
 			case "1": // This code is insecure
-				$lEnableJavaScriptValidation = TRUE;
-				$lEnableHTMLControls = TRUE;
-				$lEncodeBackgroundColor = FALSE;
+				$lEnableJavaScriptValidation = true;
+				$lEnableHTMLControls = true;
+				$lEncodeBackgroundColor = false;
 				break;
 				 
 			case "2":
 			case "3":
 			case "4":
 			case "5": // This code is fairly secure
-				$lEnableJavaScriptValidation = TRUE;
-				$lEnableHTMLControls = TRUE;
-				$lEncodeBackgroundColor = TRUE;
+				$lEnableJavaScriptValidation = true;
+				$lEnableHTMLControls = true;
+				$lEncodeBackgroundColor = true;
 			break;
 		}// end switch
 	
@@ -47,7 +48,7 @@
     	
 	}else{
 		$lBackgroundColor = $lBackgroundColorText = "eecccc";
-	}// end if (isset($_POST)) 
+	}// end if (isset($_POST))
 ?>
 
 <script type="text/javascript">
@@ -56,14 +57,14 @@
 		try{
 			<?php 
 			if($lEnableJavaScriptValidation){
-				echo 'var lValidateInput = "TRUE"' . PHP_EOL;
+				echo 'var lValidateInput = "true"' . PHP_EOL;
 			}else{
-				echo 'var lValidateInput = "FALSE"' . PHP_EOL;
+				echo 'var lValidateInput = "false"' . PHP_EOL;
 			}// end if
 			?>
 
-			if(lValidateInput == "TRUE"){
-				var lDigits = /[0-9]{6}/;
+			if(lValidateInput == "true"){
+				var lDigits = /[0-9A-Fa-f]{6}/;
 				
 				if (theForm.id_background_color.value.search(lDigits) != 0){
 						alert('The backgroud color must be 6 hexidecimal digits specified as RRGGBB where R is red, G is green and B is blue');
@@ -80,8 +81,8 @@
 
 <div class="page-title">Set Background Color</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc'); ?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc'; ?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <form	action="index.php?page=set-background-color.php" 
 		method="post" 

@@ -8,8 +8,7 @@
 	 */
 
 	try{
-		$ESAPI = NULL;
-		$Encoder = NULL;
+		$Encoder = null;
 
 		if (session_status() == PHP_SESSION_NONE){
 		    session_start();
@@ -20,28 +19,28 @@
 		}// end if
 
     	switch ($_SESSION["security-level"]){
+			default: // Default case: This code is insecure
     		case "0": // This code is insecure
     		case "1": // This code is insecure
-				$lProtectAgainstMethodTampering = FALSE;
-				$lEncodeOutput = FALSE;
+				$lProtectAgainstMethodTampering = false;
+				$lEncodeOutput = false;
 			break;
 
 			case "2":
 			case "3":
 			case "4":
     		case "5": // This code is fairly secure
-				require_once ('./includes/constants.php');
-    			require_once (__ROOT__.'/owasp-esapi-php/src/ESAPI.php');
-				$ESAPI = new ESAPI(__ROOT__.'/owasp-esapi-php/src/ESAPI.xml');
-				$Encoder = $ESAPI->getEncoder();
-    			$lProtectAgainstMethodTampering = TRUE;
-				$lEncodeOutput = TRUE;
+				require_once './includes/constants.php';
+				require_once __SITE_ROOT__.'/classes/EncodingHandler.php';
+    			$Encoder = new EncodingHandler();
+    			$lProtectAgainstMethodTampering = true;
+				$lEncodeOutput = true;
 			break;
     	};//end switch
 
-    	$lParameterSubmitted = FALSE;
+    	$lParameterSubmitted = false;
 		if (isset($_REQUEST["page-title"])) {
-			$lParameterSubmitted = TRUE;
+			$lParameterSubmitted = true;
 		}// end if
 
 		$lPageTitle = "Styling with Mutillidae";
@@ -63,7 +62,7 @@
 ?>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
+<html lang="en" xml:lang="en">
 <head>
 	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7">
 	<link rel="stylesheet" type="text/css" href="./styles/global-styles.css" />

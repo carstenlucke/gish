@@ -11,11 +11,11 @@ class YouTubeVideos{
 
 	private $mSQLQueryHandler = null;
 
-	public function __construct($pPathToESAPI, $pSecurityLevel){
+	public function __construct($pSecurityLevel){
 		/* ------------------------------------------
 		 * initialize SQLQuery handler
 		* ------------------------------------------ */
-		$this->mSQLQueryHandler = new SQLQueryHandler($pPathToESAPI, $pSecurityLevel);
+		$this->mSQLQueryHandler = new SQLQueryHandler($pSecurityLevel);
 
 	}//end function
 
@@ -51,6 +51,8 @@ class YouTubeVideoHandler {
 	public $WhatisSQLInjection = 8;
 	public $OWASPDependencyCheckPart1HowtoInstall = 9;
 	public $OWASPDependencyCheckPart2HowtoScanYourProject = 10;
+	public $HowtoIdentifyaFilesType = 11;
+	public $WhatisServerSideRequestForgerySSRF = 12;
 	public $UsingBurpIntruderSnipertoFuzzParameters = 13;
 	public $CrossSiteScriptingPart1WhatisReflectedXSS = 14;
 	public $CrossSiteScriptingPart2WhatisDOMbasedXSS = 15;
@@ -224,6 +226,7 @@ class YouTubeVideoHandler {
 	public $MutillidaeLab61Walkthrough = 311;
 	public $MutillidaeLab62Walkthrough = 312;
 	public $MutillidaeLab63Walkthrough = 313;
+	public $MutillidaeLab51WalkthroughAlternate = 314;
 
 	/* private methods */
 	private function doSetSecurityLevel($pSecurityLevel){
@@ -323,10 +326,10 @@ class YouTubeVideoHandler {
 	/* public methods */
 
 	/* constructor */
-	public function __construct($pPathToESAPI, $pSecurityLevel){
+	public function __construct($pSecurityLevel){
 		$this->doSetSecurityLevel($pSecurityLevel);
-		$this->mYouTubeVideos = new YouTubeVideos($pPathToESAPI, $pSecurityLevel);
-		$this->mRemoteFileHandler = new RemoteFileHandler($pPathToESAPI, $pSecurityLevel);
+		$this->mYouTubeVideos = new YouTubeVideos($pSecurityLevel);
+		$this->mRemoteFileHandler = new RemoteFileHandler($pSecurityLevel);
 		$this->mCurlIsInstalled = $this->curlIsInstalled();
 		$this->mYouTubeIsReachable = $this->isYouTubeReachable();
 	}// end function __construct

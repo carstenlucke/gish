@@ -1,7 +1,7 @@
 /* Global */
 /* ------------------------------------------------- */
-html{
-	font-family: sans-serif, tahoma, verdana, serif;
+html {
+    font-family: 'Roboto', sans-serif;
 }
 
 img{
@@ -9,14 +9,21 @@ img{
 	vertical-align:middle;
 }
 
-a{
-	text-decoration: none;
-	cursor: pointer;
-	border: none;
+img.icon{
+	margin-right: 4px;
 }
 
-a:HOVER{
-	font-weight: bold;
+a {
+    text-decoration: none;
+    cursor: pointer;
+	border: none;
+	color: #007BFF;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+	color: #0056b3;
+    font-weight: bold;
 }
 
 input,textarea{
@@ -57,6 +64,7 @@ div.page-title,span.page-title{
 	border-width: 1px;
 	border-style: solid;
 	border-radius: 5px;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 *.label{
@@ -98,6 +106,11 @@ input.button{
 	padding-bottom: 3px;
 	cursor: pointer;
 	text-align: center;
+}
+
+input.button:hover {
+	background-color: #4e5a30;
+	color: #ffffff;
 }
 
 span.buffer{
@@ -182,20 +195,24 @@ table.tutorial tr.tutorial-title td{
 	 border-bottom-width: 1px;	 
 }
 
-table tr th.report-label{
-	border-color: #000000;
-	border-style: solid;
-	border-width: 1px;
-	font-weight: bold;
-	white-space: nowrap;
+table tbody tr th.report-label, 
+table tbody tr td.report-label,
+table tr th.report-label,
+table tr td.report-label {
+    border-color: #000000;
+    border-style: solid;
+    border-width: 1px;
+    font-weight: bold;
+    white-space: nowrap;
 }
 
-table tr td.report-data{
+table tbody tr td.report-data,
+table tr td.report-data {
 	border-color: #000000;
 	border-style: solid;
 	border-width: 1px;
-	/*font-weight: bold;*/
 }
+
 /* ------------------------------------------------- */
 /* Tables */
 /* ------------------------------------------------- */
@@ -318,18 +335,18 @@ table.results-table{
 /* -------------------------- */
 /* Tables that make up forms  */
 /* -------------------------- */
-
-table tr td.form-header{
-	font-weight: bold;
-	background-color: #bc6c2550;
-	text-align: center;
-	border: 1px solid black;
-	padding-left: 30px;
-	padding-right: 30px;
-	font-size: 18px;
-	border-radius: 5px;
-	word-break: break-word;
-	width: 500px;
+table tr td.form-header,
+table tr th.form-header {
+    font-weight: bold;
+    background-color: #bc6c2550;
+    text-align: center;
+    border: 1px solid black;
+    padding-left: 30px;
+    padding-right: 30px;
+    font-size: 18px;
+    border-radius: 5px;
+    word-break: break-word;
+    width: 500px;
 }
 
 /* ------------------------------------------------- */
@@ -494,9 +511,7 @@ table tr td.error-detail{
 	border-color: #990000;
 	border-width: 1px;
 	border-style: dashed;
-	/*background-color: #FFCCCC;*/
 	text-align: left;
-	/*font-weight: bold;*/
 	color: #000000;
 	padding-left: 10px;
 	padding-right: 10px;
@@ -509,7 +524,6 @@ span.big-asterik{
 }
 
 div.database-failure-message{
-	text-align: center;
 	width: 600px;
 	text-align: left;
 	font-weight: bold;
@@ -585,7 +599,6 @@ table tr td.success-header{
 /* ------------------------------------------------- */
 
 div.database-success-message{
-	text-align: center;
 	width: 600px;
 	text-align: left;
 	font-weight: bold;
@@ -594,7 +607,6 @@ div.database-success-message{
 }
 
 div.database-informative-message{
-	text-align: center;
 	width: 600px;
 	text-align: left;
 	font-weight: bold;
@@ -603,7 +615,6 @@ div.database-informative-message{
 }
 
 div.database-warning-message{
-	text-align: center;
 	width: 600px;
 	text-align: left;
 	font-weight: bold;

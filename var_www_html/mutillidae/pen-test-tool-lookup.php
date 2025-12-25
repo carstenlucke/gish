@@ -1,30 +1,31 @@
 <?php 
-	try {	    	
+	try {
     	switch ($_SESSION["security-level"]){
+			default: // This code is insecure.
     		case "0": // This code is insecure.
-    			$lUseSafeJSONParser = FALSE;
-    			$lUseJavaScriptValidation = FALSE;
-    			$lUseServerSideValidation = FALSE;
-   				$lEncodeOutput = FALSE;
-				$lProtectAgainstMethodTampering = FALSE;	
+    			$lUseSafeJSONParser = false;
+    			$lUseJavaScriptValidation = false;
+    			$lUseServerSideValidation = false;
+   				$lEncodeOutput = false;
+				$lProtectAgainstMethodTampering = false;
 			break;
 
     		case "1": // This code is insecure.
-    			$lUseSafeJSONParser = FALSE;
-    			$lUseJavaScriptValidation = TRUE;
-    			$lUseServerSideValidation = FALSE;
-				$lEncodeOutput = FALSE;
-				$lProtectAgainstMethodTampering = FALSE;    		
+    			$lUseSafeJSONParser = false;
+    			$lUseJavaScriptValidation = true;
+    			$lUseServerSideValidation = false;
+				$lEncodeOutput = false;
+				$lProtectAgainstMethodTampering = false;
 			break;
 
 	   		case "2":
 	   		case "3":
 	   		case "4":
     		case "5": // This code is fairly secure
-    			$lUseSafeJSONParser = TRUE;
-    			$lUseJavaScriptValidation = TRUE;
-    			$lUseServerSideValidation = TRUE;
-    			$lProtectAgainstMethodTampering = TRUE;
+    			$lUseSafeJSONParser = true;
+    			$lUseJavaScriptValidation = true;
+    			$lUseServerSideValidation = true;
+    			$lProtectAgainstMethodTampering = true;
 	  			/* 
 	  			 * NOTE: Input validation is excellent but not enough. The output must be
 	  			 * encoded per context. For example, if output is placed in HTML,
@@ -39,12 +40,12 @@
 	  			 */
 	   			// encode the output following OWASP standards
 	   			// this will be HTML encoding because we are outputting data into HTML
-				$lEncodeOutput = TRUE;
+				$lEncodeOutput = true;
     		break;
     	}// end switch
 	}catch(Exception $e){
 		echo $CustomErrorHandler->FormatError($e, "Error setting up configuration on page pentest-lookup-tool.php");
-	}// end try	
+	}// end try
 
 	/* ----------------------------------------------------------
 	 * Get the tools to populate the drop down box
@@ -67,7 +68,7 @@
 
 		    //echo '<option value="' . $lToolID . '">' . $lToolName . '</option>' . PHP_EOL;
 		    $lPenTestToolsOptions .= '<option value="' . $lToolID . '">' . $lToolName . '</option>' . PHP_EOL;
-		}// end while 
+		}// end while
 		
 	} catch (Exception $e) {
 		echo $CustomErrorHandler->FormatError($e, $lQueryString);
@@ -90,12 +91,12 @@
 	
 			if(!empty($lPostedButton)){
 				
-				$lErrorNoChoiceMade = FALSE;
+				$lErrorNoChoiceMade = false;
 				
 				if ($lPostedToolID == "0923ac83-8b50-4eda-ad81-f1aac6168c5c" || strlen($lPostedToolID) == 0){
-					$lErrorNoChoiceMade = TRUE;
+					$lErrorNoChoiceMade = true;
 				}else{
-					$lErrorNoChoiceMade = FALSE;
+					$lErrorNoChoiceMade = false;
 
 					$qPenTestToolResults = $SQLQueryHandler->getPenTestTool($lPostedToolID);
 					$lPenTestToolsDetails = "";
@@ -116,14 +117,14 @@
 			}// end if user didnt click submit
 		} catch (Exception $e) {
 			echo $CustomErrorHandler->FormatError($e, "Pen test tool lookup failed");
-		}// end try	
-	}//end if isset()	
+		}// end try
+	}//end if isset()
 ?>
 
 <div class="page-title">Pen Test Tool Lookup</div>
 
-<?php include_once (__ROOT__.'/includes/back-button.inc');?>
-<?php include_once (__ROOT__.'/includes/hints/hints-menu-wrapper.inc'); ?>
+<?php include_once __SITE_ROOT__.'/includes/back-button.inc';?>
+<?php include_once __SITE_ROOT__.'/includes/hints/hints-menu-wrapper.inc'; ?>
 
 <!-- BEGIN HTML OUTPUT  -->
 <script type="text/javascript">
@@ -139,7 +140,7 @@
 			echo "var gUseJavaScriptValidation = \"TRUE\";".PHP_EOL;
 		}else{
 			echo "var gUseJavaScriptValidation = \"FALSE\";".PHP_EOL;
-		}//end if		
+		}//end if
 
 		if ($lErrorNoChoiceMade){
 			echo "var gDisplayError = \"TRUE\";".PHP_EOL;
@@ -160,7 +161,7 @@
 
 			var lToolIDTD = lDocRoot.createElement("td");
 			var lToolNameTD = lDocRoot.createElement("td");
-			var lPhaseTD = lDocRoot.createElement("td");			
+			var lPhaseTD = lDocRoot.createElement("td");
 			var lToolTypeTD = lDocRoot.createElement("td");
 			var lCommentTD = lDocRoot.createElement("td");
 
@@ -195,7 +196,7 @@
 		try{
 			if(gDisplayError == "TRUE"){
 				document.getElementById("id-invalid-input-tr").style.display="";
-			}// end if		
+			}// end if
 		}catch(/*Exception*/ e){
 			alert("Error trying to display error: " + e.message);
 		}// end try
@@ -219,7 +220,7 @@
 					for (var i=0; i<laTools.length; i++){
 						addRow(laTools[i]);
 					}//end for i
-				}// end if				
+				}// end if
 			}// end if gPenTestToolsJSONString.length > 0
 		}catch(/*Exception*/ e){
 			alert("Error trying to parse JSON: " + e.message);
@@ -228,15 +229,15 @@
 </script>
 <span>
 	<a style="text-decoration: none; cursor: pointer;" href="./index.php?page=pen-test-tool-lookup-ajax.php">
-		<img style="vertical-align: middle;" src="./images/ajax_logo-75-79.jpg" height="75px" width="78px" />
+		<img style="vertical-align: middle;" src="./images/ajax_logo-75-79.jpg" height="75px" width="78px" alt="AJAX Logo" />
 		<span style="font-weight:bold;">Switch to AJAX Version of page</span>
 	</a>
 </span>
 <fieldset style="width: 500px;">
 	<legend>Pen Test Tools</legend>
-	<form 	action="index.php?page=pen-test-tool-lookup.php" 
-			method="post" 
-			enctype="application/x-www-form-urlencoded" 
+	<form 	action="index.php?page=pen-test-tool-lookup.php"
+			method="post"
+			enctype="application/x-www-form-urlencoded"
 			onsubmit=""
 			id="idForm">
 		<table>

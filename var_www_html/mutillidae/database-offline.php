@@ -5,7 +5,7 @@
     require_once 'classes/MySQLHandler.php';
 
     /* Read ldap configuration file and populate class parameters */
-    require_once(__SITE_ROOT__ . '/includes/ldap-config.inc');
+    require_once __SITE_ROOT__.'/includes/ldap-config.inc';
 
 	$lErrorMessage = "";
 	$lDatabaseHostResolvedIP = "";
@@ -37,19 +37,19 @@
 	} //end try
 
 	try{
-	    $lDatabasePingResult = shell_exec("ping $lDatabaseHost -c 1");
+	    $lDatabasePingResult = shell_exec("ping -c 1 $lDatabaseHost");
 	}catch (Exception $e){
 	    // do nothing
 	} //end try
 
 	try{
-	    $lDatabaseTracerouteResult = shell_exec("traceroute $lDatabaseHost 2>&1");
+	    $lDatabaseTracerouteResult = shell_exec("traceroute --max-hops=2 --wait=2 $lDatabaseHost 2>&1");
 	}catch (Exception $e){
 	    // do nothing
 	} //end try
 
 	try{
-	    $lTracerouteTCPResult = shell_exec("traceroute --tcp -p $lDatabasePort $lDatabaseHost 2>&1");
+	    $lTracerouteTCPResult = shell_exec("traceroute --max-hops=2 --wait=2 --tcp -p $lDatabasePort $lDatabaseHost 2>&1");
 	}catch (Exception $e){
 	    // do nothing
 	} //end try
@@ -83,19 +83,19 @@
 	} //end try
 
 	try{
-	    $lLDAPPingResult = shell_exec("ping $lLDAPHost -c 1");
+	    $lLDAPPingResult = shell_exec("ping -c 1 $lLDAPHost");
 	}catch (Exception $e){
 	    // do nothing
 	} //end try
 
 	try{
-	    $lLDAPTracerouteResult = shell_exec("traceroute $lLDAPHost 2>&1");
+	    $lLDAPTracerouteResult = shell_exec("traceroute --max-hops=2 --wait=2 $lLDAPHost 2>&1");
 	}catch (Exception $e){
 	    // do nothing
 	} //end try
 
 	try{
-	    $lTracerouteTCPResult = shell_exec("traceroute --tcp -p $lLDAPPort $lLDAPHost 2>&1");
+	    $lTracerouteTCPResult = shell_exec("traceroute --max-hops=2 --wait=2 --tcp -p $lLDAPPort $lLDAPHost 2>&1");
 	}catch (Exception $e){
 	    // do nothing
 	} //end try
@@ -119,17 +119,17 @@
 	    session_start();
 	}// end if
 
-	$lSubmitButtonClicked = isSet($_REQUEST["database-offline-php-submit-button"]);
+	$lSubmitButtonClicked = isset($_REQUEST["database-offline-php-submit-button"]);
 
 	if ($lSubmitButtonClicked) {
-		$_SESSION["UserOKWithDatabaseFailure"] = "TRUE";
+		$_SESSION["UserOKWithDatabaseFailure"] = true;
 		header("Location: index.php", true, 302);
 	}//end if
 
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+<html lang="en" xml:lang="en">
 <head>
 	<link rel="stylesheet" type="text/css" href="./styles/global-styles.css" />
 	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">

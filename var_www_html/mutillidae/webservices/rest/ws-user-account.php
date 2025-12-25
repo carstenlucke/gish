@@ -1,192 +1,290 @@
 <?php
-	/*  --------------------------------
-	 *  We use the session on this page
-	 *  --------------------------------*/
-    if (session_status() == PHP_SESSION_NONE){
-        session_start();
-    }// end if
+    // Required files
+    require_once '../../includes/constants.php';
+    require_once '../../classes/SQLQueryHandler.php';
+    require_once '../../classes/CustomErrorHandler.php';
+    require_once '../includes/ws-constants.php';
 
-    if (!isset($_SESSION["security-level"])){
-        $_SESSION["security-level"] = 0;
-    }// end if
+    class MissingPostParameterException extends Exception {
+        public function __construct($parameter) {
+            parent::__construct("POST parameter " . $parameter . " is required");
+        }
+    }
 
-	/* ----------------------------------------
-	 *	initialize security level to "insecure"
-	 * ----------------------------------------*/
-	if (!isset($_SESSION['security-level'])){
-		$_SESSION['security-level'] = '0';
-	}// end if
+    class UnsupportedHttpVerbException extends Exception {
+        public function __construct($verb) {
+            parent::__construct("Unsupported HTTP verb: " . $verb);
+        }
+    }
 
-	/* ------------------------------------------
-	 * Constants used in application
-	 * ------------------------------------------ */
-	require_once('../../includes/constants.php');
-	require_once('../../includes/minimum-class-definitions.php');
+    function populatePOSTSuperGlobal(){
+        $lParameters = array();
+        parse_str(file_get_contents('php://input'), $lParameters);
+        $_POST = $lParameters + $_POST;
+    }
 
-	function populatePOSTSuperGlobal(){
-		$lParameters = Array();
-		parse_str(file_get_contents('php://input'), $lParameters);
-		$_POST = $lParameters + $_POST;
-	}// end function populatePOSTArray
+    function getPOSTParameter($pParameter, $lRequired){
+        if(isset($_POST[$pParameter])){
+            return $_POST[$pParameter];
+        }else{
+            if($lRequired){
+                throw new MissingPostParameterException($pParameter);
+            }else{
+                return "";
+            }
+        }
+    }
 
-	function getPOSTParameter($pParameter, $lRequired){
-		if(isset($_POST[$pParameter])){
-			return $_POST[$pParameter];
-		}else{
-			if($lRequired){
-				throw new Exception("POST parameter ".$pParameter." is required");
-			}else{
-				return "";
-			}
-		}// end if isset
-	}// end function validatePOSTParameter
+    function jsonEncodeQueryResults($pQueryResult){
+        $lDataRows = array();
+        while ($lDataRow = mysqli_fetch_assoc($pQueryResult)) {
+            $lDataRows[] = $lDataRow;
+        }
+        return json_encode($lDataRows);
+    }
 
-	function jsonEncodeQueryResults($pQueryResult){
-		$lDataRows = array();
-		while ($lDataRow = mysqli_fetch_assoc($pQueryResult)) {
-			$lDataRows[] = $lDataRow;
-		}// end while
+    try {
+        // Initialize handlers
+        $SQLQueryHandler = new SQLQueryHandler(SECURITY_LEVEL_INSECURE);
+        $lSecurityLevel = $SQLQueryHandler->getSecurityLevelFromDB();
+        $SQLQueryHandler->setSecurityLevel($lSecurityLevel);
+        $CustomErrorHandler = new CustomErrorHandler($lSecurityLevel);
 
-		return json_encode($lDataRows);
-	}//end function jsonEncodeQueryResults
+        // Set CORS headers
+        header(CORS_ACCESS_CONTROL_ALLOW_ORIGIN);
+        header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS'); // Allowed methods
+        header('Access-Control-Allow-Headers: Content-Type, Authorization'); // Specify allowed headers
+        header('Access-Control-Expose-Headers: Authorization'); // Expose headers if needed
+        header(CONTENT_TYPE_JSON);
 
-	try{
-		$lAccountUsername = "";
-		$lVerb = $_SERVER['REQUEST_METHOD'];
+        // Handle preflight requests (OPTIONS)
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            header(CORS_ACCESS_CONTROL_MAX_AGE); // Cache the preflight response for 600 seconds (10 minutes)
+            http_response_code(RESPONSE_CODE_NO_CONTENT); // No Content
+            exit();
+        }
 
-		switch($lVerb){
-			case "GET":
-				if(isset($_GET['username'])){
-					/* Example hack: username=jeremy'+union+select+concat('The+password+for+',username,'+is+',+password),mysignature+from+accounts+--+ */
-					$lAccountUsername = $_GET['username'];
+        switch ($lSecurityLevel) {
+            default:
+            case SECURITY_LEVEL_INSECURE:
+                $lRequireAuthentication = false;
+                break;
+            case SECURITY_LEVEL_MEDIUM:
+            case 2:
+            case 3:
+            case 4:
+            case SECURITY_LEVEL_SECURE:
+                $lRequireAuthentication = true;
+                break;
+        }
 
-					if ($lAccountUsername == "*"){
-						/* List all accounts */
-						$lQueryResult = $SQLQueryHandler->getUsernames();
-					}else{
-						/* lookup user */
-						$lQueryResult = $SQLQueryHandler->getNonSensitiveAccountInformation($lAccountUsername);
-					}// end if
+        // Shared: Include the shared JWT token authentication function
+        require_once '../includes/ws-authenticate-jwt-token.php';
 
-					if ($lQueryResult->num_rows > 0){
-						echo "Result: {Accounts: {".jsonEncodeQueryResults($lQueryResult)."}}";
-					}else{
-						echo "Result: {User '".$lAccountUsername."' does not exist}";
-					}// end if
+        // Shared: Authenticate the user if required
+        if ($lRequireAuthentication) {
+            try {
+                $lDecodedToken = authenticateJWTToken(); // Authenticate using the shared function
+            } catch (InvalidTokenException $e) {
+                http_response_code(RESPONSE_CODE_UNAUTHORIZED);
+                header(CONTENT_TYPE_JSON);
+                echo json_encode(['error' => 'Unauthorized', 'details' => $e->getMessage()]);
+                exit;
+            }
+        }
 
-				}else{
+        $lVerb = $_SERVER['REQUEST_METHOD'];
 
-					/* Display help and list accounts */
-					echo
-						"<a href='/mutillidae/index.php' style='cursor:pointer;text-decoration:none;font-weight:bold;'/>Back to Home Page</a>
-						<br /><br /><br />
-						<div><span style='font-weight:bold;'>Help:</span> This service exposes GET, POST, PUT, DELETE methods. This service is vulnerable to SQL injection in security level 0.</div>
-						<br />
-						<hr />
-						<div><span style='font-weight:bold;'>DEFAULT GET:</span> (without any parameters) will display this help plus a list of accounts in the system.</div>
-							<br />
-							&nbsp;&nbsp;&nbsp;<span style='font-weight:bold;'>Optional params</span>: None.
-						<br /><br />
-						<hr />
-						<div><span style='font-weight:bold;'>GET:</span> Either displays usernames of all accounts or the username and signature of one account.
-							<br /><br />
-							&nbsp;&nbsp;&nbsp;<span style='font-weight:bold;'>Optional params</span>: username AS URL parameter. If username is &quot;*&quot; then all accounts are returned.<br />
-							<br />
-							<span style='font-weight:bold;'>&nbsp;&nbsp;&nbsp;Example(s):</span><br /><br />
-								&nbsp;&nbsp;&nbsp;Get a particular user: <a href='/mutillidae/webservices/rest/ws-user-account.php?username=adrian'>/mutillidae/webservices/rest/ws-user-account.php?username=adrian</a><br />
-								&nbsp;&nbsp;&nbsp;Get all users: <a href='/mutillidae/webservices/rest/ws-user-account.php?username=*'>/mutillidae/webservices/rest/ws-user-account.php?username=*</a><br />
-							</div>
-							<br />
-						<div>
-						<span style='font-weight:bold;'>&nbsp;&nbsp;&nbsp;Example Exploit(s):</span><br /><br />
-							&nbsp;&nbsp;&nbsp;SQL injection: <a href='/mutillidae/webservices/rest/ws-user-account.php?username=%6a%65%72%65%6d%79%27%20%75%6e%69%6f%6e%20%73%65%6c%65%63%74%20%63%6f%6e%63%61%74%28%27%54%68%65%20%70%61%73%73%77%6f%72%64%20%66%6f%72%20%27%2c%75%73%65%72%6e%61%6d%65%2c%27%20%69%73%20%27%2c%20%70%61%73%73%77%6f%72%64%29%2c%6d%79%73%69%67%6e%61%74%75%72%65%20%66%72%6f%6d%20%61%63%63%6f%75%6e%74%73%20%2d%2d%20'>/mutillidae/webservices/rest/ws-user-account.php?username=jeremy'+union+select+concat('The+password+for+',username,'+is+',+password),mysignature+from+accounts+--+<br /></a>
+        switch ($lVerb) {
+            case "GET":
+                if (isset($_GET['username'])) {
+                    $lUsername = $_GET['username'] ?? '';
 
-						</div>
-						<br />
-						<hr />
-						<div><span style='font-weight:bold;'>POST:</span> Creates new account.
-								<br /><br /><span style='font-weight:bold;'>&nbsp;&nbsp;&nbsp;Required params</span>: username, password AS POST parameter.
-								<br />
-								&nbsp;&nbsp;&nbsp;<span style='font-weight:bold;'>Optional params</span>: signature AS POST parameter.</div>
-						<br />
-						<hr />
-						<div><span style='font-weight:bold;'>PUT:</span> Creates or updates account. <br /><br /><span style='font-weight:bold;'>&nbsp;&nbsp;&nbsp;Required params</span>: username, password AS POST parameter.
-								<br />
-								&nbsp;&nbsp;&nbsp;<span style='font-weight:bold;'>Optional params</span>: signature AS POST parameter.</div>
-						<br />
-						<hr />
-						<div><span style='font-weight:bold;'>DELETE:</span> Deletes account.
-								<br /><br /><span style='font-weight:bold;'>&nbsp;&nbsp;&nbsp;Required params</span>: username, password AS POST parameter.</div>
-						&nbsp;&nbsp;&nbsp;<span style='font-weight:bold;'>Optional params</span>: None.
-						<br /><br />";
-				}// end if
+                    if ($lUsername === "*") {
+                        $lQueryResult = $SQLQueryHandler->getUsernames();
+                    } else {
+                        $lQueryResult = $SQLQueryHandler->getNonSensitiveAccountInformation($lUsername);
+                    }
 
-			break;
-			case "POST"://create
+                    $lArrayResponse = [];
+                    if ($lQueryResult->num_rows > 0) {
+                        $lArrayAccounts = [];
+                        while ($row = $lQueryResult->fetch_assoc()) {
+                            $lArrayAccounts[] = $row;
+                        }
+                        $lArrayResponse['Result'] = ['Accounts' => $lArrayAccounts];
+                    } else {
+                        $lArrayResponse['Result'] = "User '$lUsername' does not exist";
+                    }
 
-				$lAccountUsername = getPOSTParameter("username", TRUE);
-				$lAccountPassword = getPOSTParameter("password", TRUE);
-				$lAccountSignature = getPOSTParameter("signature", FALSE);
+                    http_response_code(RESPONSE_CODE_OK);
+                    header(CONTENT_TYPE_JSON);
+                    $lArrayResponse['SecurityLevel'] = $lSecurityLevel;
+                    $lArrayResponse['Timestamp'] = date(DATE_TIME_FORMAT);
+                    echo json_encode($lArrayResponse, JSON_PRETTY_PRINT);
+                    exit(); // Exit after response
 
-				if ($SQLQueryHandler->accountExists($lAccountUsername)){
-					echo "Result: {Account ".$lAccountUsername." already exists}";
-				}else{
-					$lQueryResult = $SQLQueryHandler->insertNewUserAccount($lAccountUsername, $lAccountPassword, $lAccountSignature);
-					echo "Result: {Inserted account ".$lAccountUsername."}";
-				}// end if
+                } else {
+                    http_response_code(RESPONSE_CODE_BAD_REQUEST);
+                    header(CONTENT_TYPE_JSON);
+                    echo json_encode(["error" => "Username parameter is required", "SecurityLevel" => $lSecurityLevel], JSON_PRETTY_PRINT);
+                    exit(); // Exit after response
+                }
 
-			break;
-			case "PUT":	//create or update
-				/* $_POST array is not auto-populated for PUT method. Parse input into an array. */
-				populatePOSTSuperGlobal();
+            case "POST":
+                $lUsername = getPOSTParameter("username", true);
+                $lAccountPassword = getPOSTParameter("password", true);
+                $lAccountFirstName = getPOSTParameter("firstname", true);
+                $lAccountLastName = getPOSTParameter("lastname", true);
+                $lAccountSignature = getPOSTParameter("signature", false);
 
-				$lAccountUsername = getPOSTParameter("username", TRUE);
-				$lAccountPassword = getPOSTParameter("password", TRUE);
-				$lAccountSignature = getPOSTParameter("signature", FALSE);
+                $lArrayResponse = [];
 
-				if ($SQLQueryHandler->accountExists($lAccountUsername)){
-					$lQueryResult = $SQLQueryHandler->updateUserAccount($lAccountUsername, $lAccountPassword, $lAccountSignature);
-					echo "Result: {Updated account ".$lAccountUsername.". ".$lQueryResult." rows affected.}";
-				}else{
-					$lQueryResult = $SQLQueryHandler->insertNewUserAccount($lAccountUsername, $lAccountPassword, $lAccountSignature);
-					echo "Result: {Inserted account ".$lAccountUsername.". ".$lQueryResult." rows affected.}";
-				}// end if
+                if ($SQLQueryHandler->accountExists($lUsername)) {
+                    $lArrayResponse['Result'] = "Account '$lUsername' already exists";
+                    $lArrayResponse['Success'] = false;
+                    http_response_code(RESPONSE_CODE_CONFLICT);
 
-			break;
-			case "DELETE":
-				/* $_POST array is not auto-populated for DELETE method. Parse input into an array. */
-				populatePOSTSuperGlobal();
+                } else {
+                    $lQueryResult = $SQLQueryHandler->insertNewUserAccount(
+                        $lUsername, $lAccountPassword, $lAccountFirstName, $lAccountLastName, $lAccountSignature
+                    );
 
-				$lAccountUsername = getPOSTParameter("username", TRUE);
-				$lAccountPassword = getPOSTParameter("password", TRUE);
+                    if ($lQueryResult) {
+                        $lArrayResponse['Result'] = "Inserted account '$lUsername'";
+                        $lArrayResponse['Success'] = true;
+                        http_response_code(RESPONSE_CODE_CREATED); // Created
+                    } else {
+                        $lArrayResponse['Result'] = "Failed to insert account '$lUsername'";
+                        $lArrayResponse['Success'] = false;
+                        http_response_code(RESPONSE_CODE_INTERNAL_SERVER_ERROR); // Internal Server Error
+                    }
+                }
 
-				if($SQLQueryHandler->accountExists($lAccountUsername)){
+                header(CONTENT_TYPE_JSON);
+                $lArrayResponse['SecurityLevel'] = $lSecurityLevel;
+                $lArrayResponse['Timestamp'] = date(DATE_TIME_FORMAT);
+                echo json_encode($lArrayResponse, JSON_PRETTY_PRINT);
+                exit(); // Exit after response
 
-					if($SQLQueryHandler->authenticateAccount($lAccountUsername,$lAccountPassword)){
-						$lQueryResult = $SQLQueryHandler->deleteUser($lAccountUsername);
+            case "PUT": // create or update
+                /* $_POST array is not auto-populated for PUT method. Parse input into an array. */
+                populatePOSTSuperGlobal();
+            
+                $lUsername = getPOSTParameter("username", true);
+                $lAccountPassword = getPOSTParameter("password", true);
+                $lAccountFirstName = getPOSTParameter("firstname", true);
+                $lAccountLastName = getPOSTParameter("lastname", true);
+                $lAccountSignature = getPOSTParameter("signature", false);
+            
+                // New boolean parameters to decide whether to update client_id and client_secret
+                $lUpdateClientID = filter_var(getPOSTParameter("update_client_id", false), FILTER_VALIDATE_BOOLEAN);
+                $lUpdateClientSecret = filter_var(getPOSTParameter("update_client_secret", false), FILTER_VALIDATE_BOOLEAN);
+            
+                $lArrayResponse = [];
+            
+                if ($SQLQueryHandler->accountExists($lUsername)) {
+                    // Update the existing account
+                    $lQueryResult = $SQLQueryHandler->updateUserAccount(
+                        $lUsername,
+                        $lAccountPassword,
+                        $lAccountFirstName,
+                        $lAccountLastName,
+                        $lAccountSignature,
+                        $lUpdateClientID,
+                        $lUpdateClientSecret
+                    );
+            
+                    if ($lQueryResult > 0) {
+                        $lArrayResponse['Result'] = "Updated account '$lUsername'.";
+                        $lArrayResponse['RowsAffected'] = $lQueryResult;
+                        $lArrayResponse['Success'] = true;
+                        http_response_code(RESPONSE_CODE_OK); // OK
+                    } else {
+                        $lArrayResponse['Result'] = "No rows were updated for account '$lUsername'.";
+                        $lArrayResponse['RowsAffected'] = 0;
+                        $lArrayResponse['Success'] = false;
+                        http_response_code(RESPONSE_CODE_NOT_MODIFIED); // Not Modified
+                    }
+                } else {
+                    // Insert a new account
+                    $lQueryResult = $SQLQueryHandler->insertNewUserAccount(
+                        $lUsername,
+                        $lAccountPassword,
+                        $lAccountFirstName,
+                        $lAccountLastName,
+                        $lAccountSignature
+                    );
+            
+                    if ($lQueryResult > 0) {
+                        $lArrayResponse['Result'] = "Inserted account '$lUsername'.";
+                        $lArrayResponse['RowsAffected'] = $lQueryResult;
+                        $lArrayResponse['Success'] = true;
+                        http_response_code(RESPONSE_CODE_CREATED);
+                    } else {
+                        $lArrayResponse['Result'] = "Failed to insert account '$lUsername'.";
+                        $lArrayResponse['RowsAffected'] = 0;
+                        $lArrayResponse['Success'] = false;
+                        http_response_code(RESPONSE_CODE_INTERNAL_SERVER_ERROR); // Internal Server Error
+                    }
+                }
+            
+                header(CONTENT_TYPE_JSON);
+                $lArrayResponse['SecurityLevel'] = $lSecurityLevel;
+                $lArrayResponse['Timestamp'] = date(DATE_TIME_FORMAT);
+                echo json_encode($lArrayResponse, JSON_PRETTY_PRINT);
+                exit(); // Exit after response
 
-						if ($lQueryResult){
-							echo "Result: {Deleted account ".$lAccountUsername."}";
-						}else{
-							echo "Result: {Attempted to delete account ".$lAccountUsername." but result returned was ".$lQueryResult."}";
-						}//end if
+            case "DELETE":
+                /* $_POST array is not auto-populated for DELETE method. Parse input into an array. */
+                populatePOSTSuperGlobal();
 
-					}else{
-						echo "Result: {Could not authenticate account ".$lAccountUsername.". Password incorrect.}";
-					}// end if
+                $lUsername = getPOSTParameter("username", true);
+                $lAccountPassword = getPOSTParameter("password", true);
 
-				}else{
-					echo "Result: {User '".$lAccountUsername."' does not exist}";
-				}// end if
+                $lArrayResponse = [];
 
-			break;
-			default:
-				throw new Exception("Could not understand HTTP REQUEST_METHOD verb");
-			break;
-		}// end switch
+                if ($SQLQueryHandler->accountExists($lUsername)) {
+                    if ($SQLQueryHandler->authenticateAccount($lUsername, $lAccountPassword)) {
+                        $lQueryResult = $SQLQueryHandler->deleteUser($lUsername);
 
-	} catch (Exception $e) {
-		echo $CustomErrorHandler->FormatErrorJSON($e, "Unable to process request to web service ws-user-account");
-	}// end try
+                        if ($lQueryResult) {
+                            $lArrayResponse['Result'] = "Deleted account '$lUsername'.";
+                            $lArrayResponse['Success'] = true;
+                            http_response_code(RESPONSE_CODE_OK); // OK
+                        } else {
+                            $lArrayResponse['Result'] = "Attempted to delete account '$lUsername', but the result returned was '$lQueryResult'.";
+                            $lArrayResponse['Success'] = false;
+                            http_response_code(RESPONSE_CODE_INTERNAL_SERVER_ERROR); // Internal Server Error
+                        }
+                    } else {
+                        $lArrayResponse['Result'] = "Could not authenticate account '$lUsername'. Password incorrect.";
+                        $lArrayResponse['Success'] = false;
+                        http_response_code(RESPONSE_CODE_UNAUTHORIZED); // Unauthorized
+                    }
+                } else {
+                    $lArrayResponse['Result'] = "User '$lUsername' does not exist.";
+                    $lArrayResponse['Success'] = false;
+                    http_response_code(RESPONSE_CODE_NOT_FOUND); // Not Found
+                }
 
+                header(CONTENT_TYPE_JSON);
+                $lArrayResponse['SecurityLevel'] = $lSecurityLevel;
+                $lArrayResponse['Timestamp'] = date(DATE_TIME_FORMAT);
+                echo json_encode($lArrayResponse, JSON_PRETTY_PRINT);
+                exit(); // Exit after response
+
+            default:
+                http_response_code(RESPONSE_CODE_METHOD_NOT_ALLOWED);
+                header('Allow: GET, POST, PUT, DELETE, OPTIONS');
+                header(CONTENT_TYPE_JSON);
+                echo json_encode(["error" => "Method not allowed", "SecurityLevel" => $lSecurityLevel], JSON_PRETTY_PRINT);
+                exit(); // Exit after response
+        }
+    } catch (Exception $e) {
+        http_response_code(RESPONSE_CODE_INTERNAL_SERVER_ERROR);
+        header(CONTENT_TYPE_JSON);
+        echo $CustomErrorHandler->FormatErrorJSON($e, "Unable to process request to web service ws-user-account");
+        exit(); // Exit after response
+    }
 ?>

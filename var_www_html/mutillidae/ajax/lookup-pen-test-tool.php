@@ -2,14 +2,14 @@
 	/* ------------------------------------------
 	 * Constants used in application
 	 * ------------------------------------------ */
-	include_once('../includes/constants.php');
+	include_once '../includes/constants.php';
 
 	/* ------------------------------------------------------
 	 * INCLUDE CLASS DEFINITION PRIOR TO INITIALIZING SESSION
 	 * ------------------------------------------------------ */
-	require_once (__ROOT__ . '/classes/CustomErrorHandler.php');
-	require_once (__ROOT__ . '/classes/LogHandler.php');
-	require_once (__ROOT__ . '/classes/SQLQueryHandler.php');
+	require_once __SITE_ROOT__.'/classes/CustomErrorHandler.php';
+	require_once __SITE_ROOT__.'/classes/LogHandler.php';
+	require_once __SITE_ROOT__.'/classes/SQLQueryHandler.php';
 
     /* ------------------------------------------
      * INITIALIZE SESSION
@@ -21,35 +21,35 @@
 	/* ------------------------------------------
 	 * initialize custom error handler
 	 * ------------------------------------------ */
-	$CustomErrorHandler = new CustomErrorHandler("../owasp-esapi-php/src/", $_SESSION["security-level"]);
+	$CustomErrorHandler = new CustomErrorHandler($_SESSION["security-level"]);
 
 	/* ------------------------------------------
  	* initialize log handler
  	* ------------------------------------------ */
-	$LogHandler = new LogHandler("../owasp-esapi-php/src/", $_SESSION["security-level"]);
+	$LogHandler = new LogHandler($_SESSION["security-level"]);
 
 	/* ------------------------------------------
  	* initialize SQLQuery handler
  	* ------------------------------------------ */
-	$SQLQueryHandler = new SQLQueryHandler("../owasp-esapi-php/src/", $_SESSION["security-level"]);
+	$SQLQueryHandler = new SQLQueryHandler($_SESSION["security-level"]);
 
 	try {
     	switch ($_SESSION["security-level"]){
     		case "0": // This code is insecure.
-    			$lUseServerSideValidation = FALSE;
-   				$lEncodeOutput = FALSE;
-				$lTokenizeAllowedMarkup = FALSE;
-				$lProtectAgainstSQLInjection = FALSE;
-				$lProtectAgainstMethodTampering = FALSE;
+    			$lUseServerSideValidation = false;
+   				$lEncodeOutput = false;
+				$lTokenizeAllowedMarkup = false;
+				$lProtectAgainstSQLInjection = false;
+				$lProtectAgainstMethodTampering = false;
 				$lValidateInput = FALSE;
 				break;
 
     		case "1": // This code is insecure.
-    			$lUseServerSideValidation = FALSE;
-				$lEncodeOutput = FALSE;
-				$lTokenizeAllowedMarkup = FALSE;
-				$lProtectAgainstSQLInjection = FALSE;
-				$lProtectAgainstMethodTampering = FALSE;
+    			$lUseServerSideValidation = false;
+				$lEncodeOutput = false;
+				$lTokenizeAllowedMarkup = false;
+				$lProtectAgainstSQLInjection = false;
+				$lProtectAgainstMethodTampering = false;
 				$lValidateInput = FALSE;
 			break;
 
@@ -57,8 +57,8 @@
 	   		case "3":
 	   		case "4":
     		case "5": // This code is fairly secure
-    			$lUseServerSideValidation = TRUE;
-    			$lProtectAgainstMethodTampering = TRUE;
+    			$lUseServerSideValidation = true;
+    			$lProtectAgainstMethodTampering = true;
 	  			/*
 	  			 * NOTE: Input validation is excellent but not enough. The output must be
 	  			 * encoded per context. For example, if output is placed in HTML,
@@ -73,7 +73,7 @@
 	  			 */
 	   			// encode the output following OWASP standards
 	   			// this will be HTML encoding because we are outputting data into HTML
-				$lEncodeOutput = TRUE;
+				$lEncodeOutput = true;
 
 				/* Business Problem: Sometimes the business requirements define that users
 				 * should be allowed to use some HTML  markup. If unneccesary, this is a
@@ -89,10 +89,10 @@
 				 * we offer, or our system rejects the request. To put it bluntly, either the user
 				 * follows the rules, or their output is encoded. Period.
 				 */
-				$lTokenizeAllowedMarkup = TRUE;
+				$lTokenizeAllowedMarkup = true;
 
 				/* If we are in secure mode, we need to protect against SQLi */
-				$lProtectAgainstSQLInjection = TRUE;
+				$lProtectAgainstSQLInjection = true;
 
 				/* If we are in secure mode, we need to validate input */
 				$lValidateInput = TRUE;
