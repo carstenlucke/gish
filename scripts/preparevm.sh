@@ -89,8 +89,8 @@ cat $PHPINI | grep allow_url_
 # Checkout files from github repo
 git clone https://github.com/carstenlucke/gish.git
 cd gish
-sudo mv /var/www/html /var/www/html-BACKUP
-sudo mv var_www_html /var/www/html
+sudo cp -r /var/www/html /var/www/html-BACKUP
+sudo cp -r var_www_html /var/www/html
 sudo /etc/init.d/apache2 start
 
 # Initialize Mutillidae database with tables and data
