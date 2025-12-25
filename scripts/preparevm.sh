@@ -9,6 +9,30 @@ if [ "$EUID" -eq 0 ]; then
     exit 1
 fi
 
+echo "+ + + Konfiguration der Locale- und Tastatureinstellungen auf Deutsch + + +"
+
+# Locale auf Deutsch (de_DE.UTF-8) setzen
+sudo sed -i 's/^# de_DE.UTF-8 UTF-8/de_DE.UTF-8 UTF-8/' /etc/locale.gen
+sudo locale-gen de_DE.UTF-8
+sudo update-locale LANG=de_DE.UTF-8 LANGUAGE=de_DE:de LC_ALL=de_DE.UTF-8
+
+# Tastatur auf Deutsch setzen
+sudo tee /etc/default/keyboard > /dev/null <<EOF
+XKBMODEL="pc105"
+XKBLAYOUT="de"
+XKBVARIANT=""
+XKBOPTIONS=""
+BACKSPACE="guess"
+EOF
+
+# Tastaturlayout für aktuelle X-Session setzen (falls X läuft)
+if [ -n "$DISPLAY" ]; then
+    setxkbmap de
+fi
+
+echo "Locale- und Tastatureinstellungen wurden auf Deutsch konfiguriert"
+echo "Hinweis: Für vollständige Anwendung der Locale-Einstellungen kann ein Neustart erforderlich sein"
+
 cd ~
 
 echo "+ + + Herunterladen der GISH Video-Materialien + + +"
